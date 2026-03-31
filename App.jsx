@@ -357,15 +357,15 @@ export default function App() {
         </div>
         <div className="bg-[#111827] px-4 py-2.5">
           <h1 className="text-sm font-semibold tracking-wide text-white flex items-center gap-2">
+            <div className="w-1.5 h-5 bg-blue-500 rounded-full"></div>
             SiePomaga Charity Challenge
-            <span className="text-slate-400 font-normal">| 6000 KM</span>
           </h1>
         </div>
       </header>
 
       <div className="px-4 py-6 max-w-5xl w-full mx-auto">
         <div className="flex justify-between items-end mb-2 text-sm font-semibold text-slate-700">
-          <span>Postęp Misji</span>
+          <span>Postęp wyzwania</span>
           <span className="text-2xl font-bold text-slate-900">
             {formatKm(stats.globalTotal)}{' '}
             <span className="text-slate-500 text-sm font-normal">
