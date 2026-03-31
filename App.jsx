@@ -335,7 +335,7 @@ export default function App() {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-20 md:pb-0">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-16 md:pb-0">
       {!pinVerified && <PinScreen onSuccess={() => setPinVerified(true)} />}
       <header className="sticky top-0 z-10 shadow-md">
         <div className="bg-white px-4 py-3 flex justify-between items-center border-b border-slate-100">
@@ -350,9 +350,6 @@ export default function App() {
             onClick={() => setIsDrawerOpen(true)}
           >
             <Menu className="w-6 h-6" />
-            {user && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
-            )}
           </Button>
         </div>
         <div className="bg-[#111827] px-4 py-2.5">
@@ -377,10 +374,7 @@ export default function App() {
             style={{ width: `${progressPercent}%` }}
           ></div>
         </div>
-        <div className="flex justify-between mt-2">
-          <span className="text-xs text-slate-400">
-            {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
-          </span>
+        <div className="flex justify-end mt-2">
           <span className="text-xs text-slate-400">
             pozostało <span className="font-medium text-slate-500">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
           </span>
@@ -442,34 +436,6 @@ export default function App() {
                   </div>
                 </div>
               ))
-          )}
-          {data.users.length > 0 && (
-            <div className="bg-[#111827] rounded-xl p-4 text-white">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold">Suma</span>
-                <span className="text-xl font-bold">{formatKm(stats.globalTotal)} km</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="bg-white/10 rounded-lg p-2">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Bike className="w-3.5 h-3.5" /> Rower
-                  </div>
-                  <div className="font-medium">{formatKm(stats.globalBike)}</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-2">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Activity className="w-3.5 h-3.5" /> Bieg
-                  </div>
-                  <div className="font-medium">{formatKm(stats.globalRun)}</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-2">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Footprints className="w-3.5 h-3.5" /> Spacer
-                  </div>
-                  <div className="font-medium">{formatKm(stats.globalWalk)}</div>
-                </div>
-              </div>
-            </div>
           )}
         </div>
 
@@ -564,6 +530,31 @@ export default function App() {
         </div>
       </main>
 
+      {/* MOBILE BOTTOM BAR */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#111827] border-t border-slate-700 px-4 py-2">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Bike className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-medium">{formatKm(stats.globalBike)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Activity className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-medium">{formatKm(stats.globalRun)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Footprints className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-medium">{formatKm(stats.globalWalk)}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-px h-4 bg-slate-600"></div>
+            <span className="text-white font-bold text-base ml-3">{formatKm(stats.globalTotal)}</span>
+            <span className="text-slate-400 text-xs">km</span>
+          </div>
+        </div>
+      </div>
+
       {/* DRAWER MENU (USERS) */}
       <div
         className={`fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ${
@@ -656,6 +647,12 @@ export default function App() {
               ))}
           </div>
         </div>
+        <div className="border-t border-slate-200 px-4 py-3 flex items-center gap-2 shrink-0">
+          <span className={`w-2 h-2 rounded-full animate-pulse ${isCloudLoading ? 'bg-red-500' : 'bg-blue-500'}`}></span>
+          <span className="text-xs text-slate-500">
+            {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
+          </span>
+        </div>
       </aside>
 
       {/* EDIT USER MODAL */}
@@ -737,6 +734,8 @@ export default function App() {
 function ActivityModal({ userId, user, onClose, data, setData }) {
   const [type, setType] = useState('bike');
   const [value, setValue] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => { requestAnimationFrame(() => setIsVisible(true)); }, []);
 
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -806,12 +805,12 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+      className={`fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       onPointerDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+      <div className={`bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-[#111827] text-white shadow-lg shrink-0">
           <h2 className="font-semibold text-lg flex items-center gap-3">
             <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
