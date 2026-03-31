@@ -300,7 +300,93 @@ export default function App() {
       </div>
 
       <main className="flex-1 px-4 max-w-5xl w-full mx-auto overflow-hidden">
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-x-auto">
+        {/* Mobile: card list */}
+        <div className="md:hidden space-y-3">
+          {data.users.length === 0 ? (
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 text-center text-slate-500">
+              {isCloudLoading
+                ? 'Wczytywanie bazy danych...'
+                : 'Brak załogi. Dodaj użytkowników w menu.'}
+            </div>
+          ) : (
+            [...data.users]
+              .sort((a, b) => a.order - b.order)
+              .map((user) => (
+                <div
+                  key={user.id}
+                  className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 cursor-pointer active:bg-blue-50 transition-colors"
+                  onClick={() => setActiveUserId(user.id)}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1.5 font-semibold text-blue-700">
+                      <Plus className="w-3.5 h-3.5 text-blue-400" />
+                      {user.name}
+                    </div>
+                    <span className="text-lg font-bold text-blue-600">
+                      {formatKm(stats.userStats[user.id]?.total)} km
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="bg-slate-50 rounded-lg p-2">
+                      <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                        <Bike className="w-3.5 h-3.5" /> Rower
+                      </div>
+                      <div className="font-medium text-slate-700">
+                        {formatKm(stats.userStats[user.id]?.bike)}
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 rounded-lg p-2">
+                      <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                        <Activity className="w-3.5 h-3.5" /> Bieg
+                      </div>
+                      <div className="font-medium text-slate-700">
+                        {formatKm(stats.userStats[user.id]?.run)}
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 rounded-lg p-2">
+                      <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                        <Footprints className="w-3.5 h-3.5" /> Spacer
+                      </div>
+                      <div className="font-medium text-slate-700">
+                        {formatKm(stats.userStats[user.id]?.walk)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+          )}
+          {data.users.length > 0 && (
+            <div className="bg-[#111827] rounded-xl p-4 text-white">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold">Suma</span>
+                <span className="text-xl font-bold">{formatKm(stats.globalTotal)} km</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                    <Bike className="w-3.5 h-3.5" /> Rower
+                  </div>
+                  <div className="font-medium">{formatKm(stats.globalBike)}</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                    <Activity className="w-3.5 h-3.5" /> Bieg
+                  </div>
+                  <div className="font-medium">{formatKm(stats.globalRun)}</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                    <Footprints className="w-3.5 h-3.5" /> Spacer
+                  </div>
+                  <div className="font-medium">{formatKm(stats.globalWalk)}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block bg-white border border-slate-200 rounded-xl shadow-sm overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 font-semibold uppercase tracking-wider">
