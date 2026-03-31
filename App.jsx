@@ -350,9 +350,6 @@ export default function App() {
             onClick={() => setIsDrawerOpen(true)}
           >
             <Menu className="w-6 h-6" />
-            {user && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
-            )}
           </Button>
         </div>
         <div className="bg-[#111827] px-4 py-2.5">
@@ -377,10 +374,7 @@ export default function App() {
             style={{ width: `${progressPercent}%` }}
           ></div>
         </div>
-        <div className="flex justify-between mt-2">
-          <span className="text-xs text-slate-400">
-            {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
-          </span>
+        <div className="flex justify-end mt-2">
           <span className="text-xs text-slate-400">
             pozostało <span className="font-medium text-slate-500">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
           </span>
@@ -656,6 +650,12 @@ export default function App() {
               ))}
           </div>
         </div>
+        <div className="border-t border-slate-200 px-4 py-3 flex items-center gap-2 shrink-0">
+          <span className={`w-2 h-2 rounded-full animate-pulse ${isCloudLoading ? 'bg-red-500' : 'bg-blue-500'}`}></span>
+          <span className="text-xs text-slate-500">
+            {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
+          </span>
+        </div>
       </aside>
 
       {/* EDIT USER MODAL */}
@@ -737,6 +737,8 @@ export default function App() {
 function ActivityModal({ userId, user, onClose, data, setData }) {
   const [type, setType] = useState('bike');
   const [value, setValue] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => { requestAnimationFrame(() => setIsVisible(true)); }, []);
 
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -806,12 +808,12 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+      className={`fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       onPointerDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+      <div className={`bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-[#111827] text-white shadow-lg shrink-0">
           <h2 className="font-semibold text-lg flex items-center gap-3">
             <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
