@@ -866,7 +866,6 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                   onChange={(e) => setValue(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-lg p-4 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
                   placeholder="0"
-                  autoFocus
                 />
               </div>
 
