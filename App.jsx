@@ -131,8 +131,7 @@ function PinScreen({ onSuccess }) {
           <div>
             <input
               type="password"
-              inputMode="numeric"
-              maxLength={6}
+              maxLength={20}
               value={pin}
               onChange={(e) => { setPin(e.target.value); setError(false); }}
               placeholder="Wpisz PIN"
