@@ -818,7 +818,8 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Form — fixed, never scrolls */}
+        <div className="shrink-0 p-4 border-b border-slate-200">
           <section className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <h3 className="text-sm text-slate-500 mb-4 font-semibold uppercase tracking-wider">
               Nowy Wpis
@@ -879,7 +880,10 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
               </Button>
             </form>
           </section>
+        </div>
 
+        {/* History — scrollable */}
+        <div className="flex-1 overflow-y-auto p-4">
           <section>
             <h3 className="text-sm text-slate-500 mb-4 font-semibold uppercase tracking-wider flex items-center justify-between px-1">
               <span>Historia Wpisów</span>
@@ -899,165 +903,148 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                     key={entry.id}
                     className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
                   >
-                    {editingId === entry.id ? (
-                      <form onSubmit={requestSaveEdit} className="space-y-4">
-                        <div className="flex gap-2">
-                          {['bike', 'run', 'walk'].map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => setEditType(t)}
-                              className={`flex-1 p-2 rounded-lg border font-medium transition-colors ${
-                                editType === t
-                                  ? 'bg-blue-50 text-blue-700 border-blue-500'
-                                  : 'bg-white text-slate-500 border-slate-200'
-                              }`}
-                            >
-                              <div className="flex justify-center">
-                                {getTypeIcon(t)}
-                              </div>
-                            </button>
-                          ))}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-blue-600">
+                          {getTypeIcon(entry.type)}
                         </div>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="any"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-lg p-3 text-xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
-                        />
-                        {confirmAction?.type === 'EDIT' ? (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col items-center gap-3">
-                            <span className="text-sm font-semibold text-blue-800 flex items-center gap-2">
-                              <AlertTriangle className="w-4 h-4" />{' '}
-                              {confirmAction.message}
-                            </span>
-                            <div className="flex gap-2 w-full">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="flex-1 bg-white"
-                                onClick={() => setConfirmAction(null)}
-                              >
-                                Anuluj
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="primary"
-                                className="flex-1"
-                                onClick={confirmAction.onConfirm}
-                              >
-                                Zapisz
-                              </Button>
-                            </div>
+                        <div>
+                          <div className="font-bold text-slate-800 text-lg">
+                            {renderHistoryItemValue(entry)}
                           </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => {
-                                setEditingId(null);
-                                setConfirmAction(null);
-                              }}
-                            >
-                              Anuluj
-                            </Button>
-                            <Button
-                              type="submit"
-                              variant="primary"
-                              className="flex-1"
-                            >
-                              Gotowe
-                            </Button>
-                          </div>
-                        )}
-                      </form>
-                    ) : (
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-blue-600">
-                            {getTypeIcon(entry.type)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-800 text-lg">
-                              {renderHistoryItemValue(entry)}
-                            </div>
-                            <div className="text-xs text-slate-500">
-                              {new Date(entry.timestamp).toLocaleString(
-                                'pl-PL'
-                              )}
-                            </div>
+                          <div className="text-xs text-slate-500">
+                            {new Date(entry.timestamp).toLocaleString('pl-PL')}
                           </div>
                         </div>
-
-                        {confirmAction?.type === 'DELETE' &&
-                        confirmAction?.entryId === entry.id ? (
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex flex-col items-center gap-2 absolute right-4 left-4 sm:static sm:w-auto z-10 shadow-md sm:shadow-none">
-                            <span className="text-sm font-semibold text-red-700 flex items-center gap-1">
-                              <AlertTriangle className="w-4 h-4" /> Usunąć?
-                            </span>
-                            <div className="flex gap-2 w-full">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="flex-1 text-xs py-2 bg-white border-red-200 text-red-600 hover:bg-red-50"
-                                onClick={() => setConfirmAction(null)}
-                              >
-                                Nie
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="danger"
-                                className="flex-1 text-xs py-2"
-                                onClick={confirmAction.onConfirm}
-                              >
-                                Tak
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                              onClick={() => startEdit(entry)}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                              onClick={() =>
-                                setConfirmAction({
-                                  type: 'DELETE',
-                                  entryId: entry.id,
-                                  onConfirm: () => {
-                                    setData((prev) => ({
-                                      ...prev,
-                                      entries: prev.entries.filter(
-                                        (e) => e.id !== entry.id
-                                      ),
-                                    }));
-                                    setConfirmAction(null);
-                                  },
-                                })
-                              }
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
-                    )}
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                          onClick={() => startEdit(entry)}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                          onClick={() =>
+                            setConfirmAction({
+                              type: 'DELETE',
+                              entryId: entry.id,
+                              onConfirm: () => {
+                                setData((prev) => ({
+                                  ...prev,
+                                  entries: prev.entries.filter((e) => e.id !== entry.id),
+                                }));
+                                setConfirmAction(null);
+                              },
+                            })
+                          }
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </section>
         </div>
+
+        {/* Edit popup */}
+        {editingId && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <h3 className="font-semibold text-slate-800 mb-4">Edytuj wpis</h3>
+              <form onSubmit={requestSaveEdit} className="space-y-4">
+                <div className="flex gap-2">
+                  {['bike', 'run', 'walk'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setEditType(t)}
+                      className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border font-medium transition-colors ${
+                        editType === t
+                          ? 'bg-blue-50 text-blue-700 border-blue-500'
+                          : 'bg-white text-slate-500 border-slate-200'
+                      }`}
+                    >
+                      {getTypeIcon(t)}
+                      <span className="mt-1 text-xs">
+                        {t === 'bike' ? 'Rower' : t === 'run' ? 'Bieg' : 'Spacer'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg p-4 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
+                  autoFocus
+                />
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => { setEditingId(null); setConfirmAction(null); }}
+                  >
+                    Anuluj
+                  </Button>
+                  <Button type="submit" variant="primary" className="flex-1">
+                    Zapisz
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete confirm popup */}
+        {confirmAction?.type === 'DELETE' && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <div className="flex items-center gap-2 text-red-600 mb-2">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-semibold">Usunąć wpis?</span>
+              </div>
+              <p className="text-slate-500 text-sm mb-6">Tej operacji nie można cofnąć.</p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>
+                  Anuluj
+                </Button>
+                <Button variant="danger" className="flex-1" onClick={confirmAction.onConfirm}>
+                  Usuń
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit save confirm popup */}
+        {confirmAction?.type === 'EDIT' && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+              <div className="flex items-center gap-2 text-blue-700 mb-6">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-semibold">{confirmAction.message}</span>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>
+                  Anuluj
+                </Button>
+                <Button variant="primary" className="flex-1" onClick={confirmAction.onConfirm}>
+                  Zapisz
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
