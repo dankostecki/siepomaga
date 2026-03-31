@@ -367,7 +367,7 @@ export default function App() {
         <div className="flex justify-between items-end mb-2 text-sm font-semibold text-slate-700">
           <span>Postęp wyzwania</span>
           <span className="text-sm font-normal text-slate-500">
-            {progressPercent.toFixed(1)}% zrealizowane
+            pozostało <span className="font-semibold text-slate-700">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
           </span>
         </div>
         <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden">
@@ -381,7 +381,7 @@ export default function App() {
             {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
           </span>
           <span className="text-xs text-slate-400">
-            pozostało <span className="font-medium text-slate-500">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
+            {progressPercent.toFixed(1)}% zrealizowane
           </span>
         </div>
       </div>
