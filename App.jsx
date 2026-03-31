@@ -556,7 +556,7 @@ export default function App() {
       >
         <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
           <h2 className="font-semibold text-slate-800 text-lg">
-            Zarządzanie załogą
+            CMC Markets Team
           </h2>
           <Button variant="ghost" onClick={() => setIsDrawerOpen(false)}>
             <X className="w-6 h-6" />
@@ -566,7 +566,7 @@ export default function App() {
         <div className="p-4 overflow-y-auto flex-1">
           <form onSubmit={addUser} className="mb-8">
             <label className="block text-sm font-medium text-slate-600 mb-2">
-              Dodaj członka
+              Dodaj osobę
             </label>
             <div className="flex gap-2">
               <input
