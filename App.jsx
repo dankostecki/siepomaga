@@ -368,9 +368,7 @@ export default function App() {
           <span>Postęp wyzwania</span>
           <span className="text-2xl font-bold text-slate-900">
             {formatKm(stats.globalTotal)}{' '}
-            <span className="text-slate-500 text-sm font-normal">
-              / {GOAL_KM} KM
-            </span>
+            <span className="text-slate-500 text-sm font-normal">/ {GOAL_KM} KM</span>
           </span>
         </div>
         <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden">
@@ -383,8 +381,8 @@ export default function App() {
           <span className="text-xs text-slate-400">
             {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
           </span>
-          <span className="text-xs text-slate-500 font-medium">
-            {progressPercent.toFixed(1)}% zrealizowane
+          <span className="text-xs text-slate-400">
+            pozostało <span className="font-medium text-slate-500">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
           </span>
         </div>
       </div>
