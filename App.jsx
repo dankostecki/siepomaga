@@ -724,6 +724,11 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => { requestAnimationFrame(() => setIsVisible(true)); }, []);
 
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(onClose, 300);
+  };
+
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [editType, setEditType] = useState('bike');
@@ -794,7 +799,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
     <div
       className={`fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       onPointerDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) handleClose();
       }}
     >
       <div className={`bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
@@ -807,7 +812,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
           <Button
             variant="ghost"
             className="text-slate-300 hover:text-white hover:bg-slate-800"
-            onClick={onClose}
+            onClick={handleClose}
           >
             <X className="w-6 h-6" />
           </Button>
@@ -868,7 +873,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                 type="button"
                 variant="outline"
                 className="w-full py-3.5 text-lg mt-2 bg-white"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 Zakończ
               </Button>
