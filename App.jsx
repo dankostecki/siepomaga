@@ -802,7 +802,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className={`bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className={`bg-slate-50 w-full max-w-2xl sm:rounded-xl shadow-2xl flex flex-col h-full sm:h-auto sm:max-h-[85vh] overflow-hidden transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-[#111827] text-white shadow-lg shrink-0">
           <h2 className="font-semibold text-lg flex items-center gap-3">
             <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
@@ -818,28 +818,36 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-4">
-          <section className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <form onSubmit={handleSaveNew} className="space-y-3">
-              <div className="flex gap-2">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          <section className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h3 className="text-sm text-slate-500 mb-4 font-semibold uppercase tracking-wider">
+              Nowy Wpis
+            </h3>
+            <form onSubmit={handleSaveNew} className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
                 {['bike', 'run', 'walk'].map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setType(t)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-lg border font-medium transition-colors ${
                       type === t
                         ? 'bg-blue-50 text-blue-700 border-blue-500 shadow-sm'
-                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300'
+                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                     }`}
                   >
                     {getTypeIcon(t)}
-                    {t === 'bike' ? 'Rower' : t === 'run' ? 'Bieg' : 'Spacer'}
+                    <span className="mt-2 text-sm">
+                      {t === 'bike' ? 'Rower' : t === 'run' ? 'Bieg' : 'Spacer'}
+                    </span>
                   </button>
                 ))}
               </div>
 
-              <div className="flex gap-2 items-stretch">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  Ilość {type === 'walk' ? 'kroków' : 'kilometrów'}
+                </label>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -847,16 +855,9 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                   min="0"
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
-                  className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-3 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
+                  className="w-full bg-white border border-slate-300 rounded-lg p-4 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
                   placeholder="0"
                 />
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg px-4 flex flex-col items-center justify-center gap-0.5 transition-colors min-w-[64px]"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span className="text-xs font-medium">Dodaj</span>
-                </button>
               </div>
 
               {type === 'walk' && value > 0 && (
@@ -864,6 +865,18 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                   = {formatKm(value * STEP_TO_KM)} KM
                 </div>
               )}
+
+              <Button type="submit" className="w-full py-3.5 text-lg shadow-sm">
+                Zapisz dane
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full py-3.5 text-lg bg-white"
+                onClick={handleClose}
+              >
+                Zakończ
+              </Button>
             </form>
           </section>
 
