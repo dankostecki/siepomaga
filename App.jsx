@@ -335,7 +335,7 @@ export default function App() {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-20 md:pb-0">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-16 md:pb-0">
       {!pinVerified && <PinScreen onSuccess={() => setPinVerified(true)} />}
       <header className="sticky top-0 z-10 shadow-md">
         <div className="bg-white px-4 py-3 flex justify-between items-center border-b border-slate-100">
@@ -437,34 +437,6 @@ export default function App() {
                 </div>
               ))
           )}
-          {data.users.length > 0 && (
-            <div className="bg-[#111827] rounded-xl p-4 text-white">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold">Suma</span>
-                <span className="text-xl font-bold">{formatKm(stats.globalTotal)} km</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                <div className="bg-white/10 rounded-lg p-2">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Bike className="w-3.5 h-3.5" /> Rower
-                  </div>
-                  <div className="font-medium">{formatKm(stats.globalBike)}</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-2">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Activity className="w-3.5 h-3.5" /> Bieg
-                  </div>
-                  <div className="font-medium">{formatKm(stats.globalRun)}</div>
-                </div>
-                <div className="bg-white/10 rounded-lg p-2">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Footprints className="w-3.5 h-3.5" /> Spacer
-                  </div>
-                  <div className="font-medium">{formatKm(stats.globalWalk)}</div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Desktop: table */}
@@ -557,6 +529,31 @@ export default function App() {
           </table>
         </div>
       </main>
+
+      {/* MOBILE BOTTOM BAR */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#111827] border-t border-slate-700 px-4 py-2">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Bike className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-medium">{formatKm(stats.globalBike)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Activity className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-medium">{formatKm(stats.globalRun)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Footprints className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-medium">{formatKm(stats.globalWalk)}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-px h-4 bg-slate-600"></div>
+            <span className="text-white font-bold text-base ml-3">{formatKm(stats.globalTotal)}</span>
+            <span className="text-slate-400 text-xs">km</span>
+          </div>
+        </div>
+      </div>
 
       {/* DRAWER MENU (USERS) */}
       <div
