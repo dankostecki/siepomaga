@@ -26,6 +26,7 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 // --- CONFIGURATION ---
 const GOAL_KM = 6000;
 const STEP_TO_KM = 0.00072;
+const PIN_HASH = 'f32f613fca81c87052af842eaac5585812d884030a3af1e1cd2d06863d79ad1c';
 
 // WŁASNA KONFIGURACJA
 const MY_FIREBASE_CONFIG = {
@@ -87,8 +88,92 @@ const formatKm = (value) => {
   return Number(value).toFixed(2);
 };
 
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+// --- PIN SCREEN ---
+function PinScreen({ onSuccess }) {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState(false);
+  const [shaking, setShaking] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const hash = await sha256(pin);
+    if (hash === PIN_HASH) {
+      localStorage.setItem('cmcPinVerified', 'true');
+      onSuccess();
+    } else {
+      setError(true);
+      setShaking(true);
+      setPin('');
+      setTimeout(() => setShaking(false), 500);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md">
+      <div
+        className={`bg-white rounded-2xl shadow-2xl p-8 w-full max-w-xs mx-4 text-center ${shaking ? 'animate-[shake_0.4s_ease-in-out]' : ''}`}
+        style={shaking ? { animation: 'shake 0.4s ease-in-out' } : {}}
+      >
+        <div className="mb-6">
+          <div className="w-12 h-12 bg-[#111827] rounded-xl mx-auto flex items-center justify-center mb-3">
+            <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+          </div>
+          <h2 className="text-lg font-semibold text-slate-900">CMC Markets</h2>
+          <p className="text-sm text-slate-500 mt-1">SiePomaga Charity Challenge</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              value={pin}
+              onChange={(e) => { setPin(e.target.value); setError(false); }}
+              placeholder="Wpisz PIN"
+              autoFocus
+              className={`w-full text-center text-2xl tracking-[0.5em] border-2 rounded-xl px-4 py-3 outline-none transition-colors ${
+                error
+                  ? 'border-red-400 bg-red-50 text-red-600'
+                  : 'border-slate-200 focus:border-blue-500 text-slate-900'
+              }`}
+            />
+            {error && (
+              <p className="text-xs text-red-500 mt-2">Nieprawidłowy PIN. Spróbuj ponownie.</p>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={pin.length === 0}
+            className="w-full bg-blue-600 text-white font-medium py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Wejdź
+          </button>
+        </form>
+      </div>
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%       { transform: translateX(-8px); }
+          40%       { transform: translateX(8px); }
+          60%       { transform: translateX(-6px); }
+          80%       { transform: translateX(6px); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // --- MAIN APP COMPONENT ---
 export default function App() {
+  const [pinVerified, setPinVerified] = useState(
+    () => localStorage.getItem('cmcPinVerified') === 'true'
+  );
   const [user, setUser] = useState(null);
   const [data, setData] = useState({ users: [], entries: [] });
   const [isCloudLoading, setIsCloudLoading] = useState(true);
@@ -252,6 +337,7 @@ export default function App() {
   // --- RENDER ---
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-20 md:pb-0">
+      {!pinVerified && <PinScreen onSuccess={() => setPinVerified(true)} />}
       <header className="sticky top-0 z-10 bg-[#111827] text-white shadow-md px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
