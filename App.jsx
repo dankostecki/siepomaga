@@ -337,25 +337,30 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-20 md:pb-0">
       {!pinVerified && <PinScreen onSuccess={() => setPinVerified(true)} />}
-      <header className="sticky top-0 z-10 bg-[#111827] text-white shadow-md px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-          <h1 className="text-xl font-semibold tracking-wide flex items-center gap-2">
-            SiePomaga Charity Challenge{' '}
+      <header className="sticky top-0 z-10 shadow-md">
+        <div className="bg-white px-4 py-3 flex justify-between items-center border-b border-slate-100">
+          <img
+            src="https://raw.githubusercontent.com/dankostecki/siepomaga/refs/heads/main/cmc-markets-log.png"
+            alt="CMC Markets"
+            className="h-8 w-auto"
+          />
+          <Button
+            variant="ghost"
+            className="text-slate-800 hover:text-blue-600 hover:bg-slate-100 relative"
+            onClick={() => setIsDrawerOpen(true)}
+          >
+            <Menu className="w-6 h-6" />
+            {user && (
+              <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-white"></span>
+            )}
+          </Button>
+        </div>
+        <div className="bg-[#111827] px-4 py-2.5">
+          <h1 className="text-sm font-semibold tracking-wide text-white flex items-center gap-2">
+            SiePomaga Charity Challenge
             <span className="text-slate-400 font-normal">| 6000 KM</span>
           </h1>
         </div>
-        <Button
-          variant="ghost"
-          className="text-white hover:text-blue-400 hover:bg-slate-800 relative"
-          onClick={() => setIsDrawerOpen(true)}
-        >
-          <Menu className="w-7 h-7" />
-          {/* Kropka synchronizacji */}
-          {user && (
-            <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border border-[#111827]"></span>
-          )}
-        </Button>
       </header>
 
       <div className="px-4 py-6 max-w-5xl w-full mx-auto">
