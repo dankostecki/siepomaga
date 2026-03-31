@@ -338,50 +338,42 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-16 md:pb-0">
       {!pinVerified && <PinScreen onSuccess={() => setPinVerified(true)} />}
       <header className="sticky top-0 z-20 shadow-md">
-        <div className="bg-white px-4 py-3 flex justify-between items-center border-b border-slate-100">
+        <div className="bg-white px-4 py-3 flex items-center gap-3 border-b border-slate-100">
           <img
             src="https://raw.githubusercontent.com/dankostecki/siepomaga/refs/heads/main/cmc-markets-log.png"
             alt="CMC Markets"
             className="h-8 w-auto"
           />
+          <div className="w-0.5 h-6 bg-blue-500 rounded-full shrink-0"></div>
+          <span className="text-sm font-semibold text-slate-800 flex-1">SiePomaga Charity Challenge</span>
           <Button
             variant="ghost"
-            className="text-slate-800 hover:text-blue-600 hover:bg-slate-100 relative"
+            className="text-slate-800 hover:text-blue-600 hover:bg-slate-100"
             onClick={() => setIsDrawerOpen(true)}
           >
             <Menu className="w-6 h-6" />
           </Button>
         </div>
-        <div className="bg-[#111827] px-4 py-2.5">
-          <h1 className="text-sm font-semibold tracking-wide text-white flex items-center gap-2">
-            <div className="w-1.5 h-5 bg-blue-500 rounded-full"></div>
-            SiePomaga Charity Challenge
-          </h1>
+        <div className="bg-[#111827] px-4 pt-2.5 pb-3">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-xs font-semibold text-white">
+              {formatKm(stats.globalTotal)}{' '}
+              <span className="text-slate-400 font-normal">/ {GOAL_KM} KM</span>
+            </span>
+            <span className="text-xs text-slate-400">
+              pozostało <span className="font-medium text-slate-300">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 transition-all duration-1000 ease-out rounded-full"
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+          </div>
         </div>
       </header>
 
-      <div className="px-4 py-6 max-w-5xl w-full mx-auto">
-        <div className="flex justify-between items-end mb-2 text-sm font-semibold text-slate-700">
-          <span>Postęp wyzwania</span>
-          <span className="text-2xl font-bold text-slate-900">
-            {formatKm(stats.globalTotal)}{' '}
-            <span className="text-slate-500 text-sm font-normal">/ {GOAL_KM} KM</span>
-          </span>
-        </div>
-        <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-600 transition-all duration-1000 ease-out"
-            style={{ width: `${progressPercent}%` }}
-          ></div>
-        </div>
-        <div className="flex justify-end mt-2">
-          <span className="text-xs text-slate-400">
-            pozostało <span className="font-medium text-slate-500">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
-          </span>
-        </div>
-      </div>
-
-      <main className="flex-1 px-4 max-w-5xl w-full mx-auto overflow-x-hidden">
+      <main className="flex-1 px-4 max-w-5xl w-full mx-auto overflow-x-hidden mt-4">
         {/* Mobile: card list */}
         <div className="md:hidden space-y-3">
           {data.users.length === 0 ? (
@@ -532,8 +524,8 @@ export default function App() {
 
       {/* MOBILE BOTTOM BAR */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#111827] border-t border-slate-700">
-        <div className="relative max-w-5xl mx-auto px-4 py-2">
-          <div className="grid grid-cols-3 gap-2 pr-24 text-center text-xs">
+        <div className="max-w-5xl mx-auto px-4 py-2">
+          <div className="grid grid-cols-3 gap-2 text-center text-xs">
             <div className="flex flex-col items-center gap-0.5">
               <Bike className="w-4 h-4 text-blue-400" />
               <span className="text-slate-300 font-medium">{formatKm(stats.globalBike)}</span>
@@ -546,10 +538,6 @@ export default function App() {
               <Footprints className="w-4 h-4 text-blue-400" />
               <span className="text-slate-300 font-medium">{formatKm(stats.globalWalk)}</span>
             </div>
-          </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-baseline gap-1 border-l border-slate-600 pl-3">
-            <span className="text-white font-bold text-base">{formatKm(stats.globalTotal)}</span>
-            <span className="text-slate-400 text-xs">km</span>
           </div>
         </div>
       </div>
