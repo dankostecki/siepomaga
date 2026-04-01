@@ -28,7 +28,7 @@ const GOAL_KM = 6000;
 const STEP_TO_KM = 0.00072;
 const PIN_HASH = 'f32f613fca81c87052af842eaac5585812d884030a3af1e1cd2d06863d79ad1c';
 
-// WŁASNA KONFIGURACJA
+// CUSTOM CONFIGURATION
 const MY_FIREBASE_CONFIG = {
   apiKey: 'AIzaSyAwbBh-n-PeolpVTXIn9olXDduvJ5u4Lmo',
   authDomain: 'siepomagacmc.firebaseapp.com',
@@ -40,7 +40,7 @@ const MY_FIREBASE_CONFIG = {
 
 let app, auth, db, appIdStr;
 try {
-  // Automatyczne wykrywanie środowiska (Canvas vs Twój własny serwer)
+  // Auto-detect environment (Canvas vs self-hosted)
   const configToUse =
     typeof __firebase_config !== 'undefined'
       ? JSON.parse(__firebase_config)
@@ -50,7 +50,7 @@ try {
   db = initializeFirestore(app, { localCache: persistentLocalCache() });
   appIdStr = typeof __app_id !== 'undefined' ? __app_id : 'my-sports-app-v1';
 } catch (e) {
-  console.error('Błąd inicjalizacji Firebase:', e);
+  console.error('Firebase init error:', e);
 }
 
 // --- HELPER COMPONENTS ---
@@ -134,7 +134,7 @@ function PinScreen({ onSuccess }) {
               maxLength={20}
               value={pin}
               onChange={(e) => { setPin(e.target.value); setError(false); }}
-              placeholder="Wpisz PIN"
+              placeholder="Enter PIN"
               autoFocus
               className={`w-full text-center text-2xl tracking-[0.5em] border-2 rounded-xl px-4 py-3 outline-none transition-colors ${
                 error
@@ -143,7 +143,7 @@ function PinScreen({ onSuccess }) {
               }`}
             />
             {error && (
-              <p className="text-xs text-red-500 mt-2">Nieprawidłowy PIN. Spróbuj ponownie.</p>
+              <p className="text-xs text-red-500 mt-2">Incorrect PIN. Try again.</p>
             )}
           </div>
           <button
@@ -151,7 +151,7 @@ function PinScreen({ onSuccess }) {
             disabled={pin.length === 0}
             className="w-full bg-blue-600 text-white font-medium py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Wejdź
+            Enter
           </button>
         </form>
       </div>
@@ -207,7 +207,7 @@ export default function App() {
           await signInAnonymously(auth);
         }
       } catch (e) {
-        console.error('Błąd logowania:', e);
+        console.error('Auth error:', e);
       }
     };
     initAuth();
@@ -217,7 +217,7 @@ export default function App() {
 
   useEffect(() => {
     if (!user || !db) return;
-    // Nasłuchiwanie zmian w bazie danych na żywo (Real-time sync)
+    // Real-time database listener
     const docRef = doc(
       db,
       'artifacts',
@@ -238,14 +238,14 @@ export default function App() {
         setIsCloudLoading(false);
       },
       (err) => {
-        console.error('Błąd pobierania bazy:', err);
+        console.error('Database fetch error:', err);
         setIsCloudLoading(false);
       }
     );
     return () => unsubscribe();
   }, [user]);
 
-  // Własna funkcja aktualizująca stan lokalnie ORAZ w bazie Firestore
+  // Update local state and sync to Firestore
   const setDataSync = (updater) => {
     setData((prev) => {
       const newData = typeof updater === 'function' ? updater(prev) : updater;
@@ -260,7 +260,7 @@ export default function App() {
           'mainDatabase'
         );
         setDoc(docRef, newData).catch((err) =>
-          console.error('Błąd zapisu w tle:', err)
+          console.error('Background write error:', err)
         );
       }
       return newData;
@@ -281,7 +281,7 @@ export default function App() {
   };
 
   const removeUser = (id) => {
-    if (window.confirm('Usunąć użytkownika i wszystkie jego wpisy?')) {
+    if (window.confirm('Delete this user and all their entries?')) {
       setDataSync((prev) => ({
         users: prev.users.filter((u) => u.id !== id),
         entries: prev.entries.filter((e) => e.userId !== id),
@@ -374,7 +374,7 @@ export default function App() {
               <span className="text-slate-400 font-normal">/ {GOAL_KM} KM</span>
             </span>
             <span className="text-xs text-slate-400">
-              pozostało <span className="font-medium text-slate-300">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
+              remaining <span className="font-medium text-slate-300">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
             </span>
           </div>
           <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
@@ -388,7 +388,7 @@ export default function App() {
 
       {!isOnline && (
         <div className="bg-amber-500 text-white text-xs text-center py-2 px-4 shrink-0">
-          Brak połączenia — wpisy zostaną zsynchronizowane po powrocie online
+          No connection — entries will sync when back online
         </div>
       )}
 
@@ -398,8 +398,8 @@ export default function App() {
           {data.users.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-8 text-center text-slate-500">
               {isCloudLoading
-                ? 'Wczytywanie bazy danych...'
-                : 'Brak załogi. Dodaj użytkowników w menu.'}
+                ? 'Loading database...'
+                : 'No team members. Add users from the menu.'}
             </div>
           ) : (
             [...data.users]
@@ -422,7 +422,7 @@ export default function App() {
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="bg-slate-50 rounded-lg p-2">
                       <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                        <Bike className="w-3.5 h-3.5" /> Rower
+                        <Bike className="w-3.5 h-3.5" /> Cycling
                       </div>
                       <div className="font-medium text-slate-700">
                         {formatKm(stats.userStats[user.id]?.bike)}
@@ -430,7 +430,7 @@ export default function App() {
                     </div>
                     <div className="bg-slate-50 rounded-lg p-2">
                       <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                        <Activity className="w-3.5 h-3.5" /> Bieg
+                        <Activity className="w-3.5 h-3.5" /> Running
                       </div>
                       <div className="font-medium text-slate-700">
                         {formatKm(stats.userStats[user.id]?.run)}
@@ -438,7 +438,7 @@ export default function App() {
                     </div>
                     <div className="bg-slate-50 rounded-lg p-2">
                       <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                        <Footprints className="w-3.5 h-3.5" /> Spacer
+                        <Footprints className="w-3.5 h-3.5" /> Walking
                       </div>
                       <div className="font-medium text-slate-700">
                         {formatKm(stats.userStats[user.id]?.walk)}
@@ -459,16 +459,16 @@ export default function App() {
                   CMC MARKETS TEAM
                 </th>
                 <th className="p-4 text-right">
-                  <Bike className="inline w-4 h-4 mr-1" /> Rower
+                  <Bike className="inline w-4 h-4 mr-1" /> Cycling
                 </th>
                 <th className="p-4 text-right border-l border-slate-200">
-                  <Activity className="inline w-4 h-4 mr-1" /> Bieg
+                  <Activity className="inline w-4 h-4 mr-1" /> Running
                 </th>
                 <th className="p-4 text-right border-l border-slate-200">
-                  <Footprints className="inline w-4 h-4 mr-1" /> Spacer
+                  <Footprints className="inline w-4 h-4 mr-1" /> Walking
                 </th>
                 <th className="p-4 text-right font-bold text-blue-600 border-l border-slate-200">
-                  Suma (KM)
+                  Total (KM)
                 </th>
               </tr>
             </thead>
@@ -477,8 +477,8 @@ export default function App() {
                 <tr>
                   <td colSpan="5" className="p-8 text-center text-slate-500">
                     {isCloudLoading
-                      ? 'Wczytywanie bazy danych...'
-                      : 'Brak załogi. Dodaj użytkowników w menu.'}
+                      ? 'Loading database...'
+                      : 'No team members. Add users from the menu.'}
                   </td>
                 </tr>
               ) : (
@@ -523,7 +523,7 @@ export default function App() {
             <tfoot className="bg-[#111827] font-semibold text-white">
               <tr>
                 <td className="p-4 sticky left-0 z-10 bg-[#111827] border-r border-slate-700 text-white">
-                  Suma
+                  Total
                 </td>
                 <td className="p-4 text-right">{formatKm(stats.globalBike)}</td>
                 <td className="p-4 text-right border-l border-slate-700">
@@ -575,7 +575,7 @@ export default function App() {
       >
         <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
           <h2 className="font-semibold text-slate-800 text-lg">
-            Zarządzanie załogą
+            Team Management
           </h2>
           <Button variant="ghost" onClick={() => setIsDrawerOpen(false)}>
             <X className="w-6 h-6" />
@@ -585,12 +585,12 @@ export default function App() {
         <div className="p-4 overflow-y-auto flex-1">
           <form onSubmit={addUser} className="mb-8">
             <label className="block text-sm font-medium text-slate-600 mb-2">
-              Dodaj członka
+              Add member
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="np. Jan K."
+                placeholder="e.g. John D."
                 value={newUserName}
                 onChange={(e) => setNewUserName(e.target.value)}
                 className="flex-1 bg-white border border-slate-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none px-3 py-2 text-slate-900 placeholder:text-slate-400"
@@ -661,10 +661,10 @@ export default function App() {
             'bg-blue-500'
           }`}></span>
           <span className="text-xs text-slate-500">
-            {isCloudLoading ? 'Łączenie z bazą...' :
+            {isCloudLoading ? 'Connecting...' :
              !isOnline ? 'Offline' :
-             hasPendingWrites ? 'Synchronizacja...' :
-             'Połączono z chmurą'}
+             hasPendingWrites ? 'Syncing...' :
+             'Connected to cloud'}
           </span>
         </div>
       </aside>
@@ -681,7 +681,7 @@ export default function App() {
             <div className="bg-[#111827] p-4 text-white flex justify-between items-center">
               <h2 className="font-semibold flex items-center gap-3">
                 <div className="w-1.5 h-5 bg-blue-500 rounded-full"></div>{' '}
-                Edycja
+                Edit
               </h2>
               <Button
                 variant="ghost"
@@ -709,7 +709,7 @@ export default function App() {
             >
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                  Imię / Nazwa
+                  Name
                 </label>
                 <input
                   type="text"
@@ -723,7 +723,7 @@ export default function App() {
                 />
               </div>
               <Button type="submit" className="w-full py-2.5">
-                Zapisz zmiany
+                Save changes
               </Button>
             </form>
           </div>
@@ -737,7 +737,7 @@ export default function App() {
           user={data.users.find((u) => u.id === activeUserId)}
           onClose={() => setActiveUserId(null)}
           data={data}
-          setData={setDataSync} // Używamy synchronizatora Firestore
+          setData={setDataSync}
         />
       )}
     </div>
@@ -793,7 +793,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
     if (!editValue || isNaN(editValue) || editValue <= 0) return;
     setConfirmAction({
       type: 'EDIT',
-      message: 'Zapisać zmiany?',
+      message: 'Save changes?',
       onConfirm: () => {
         setData((prev) => ({
           ...prev,
@@ -811,7 +811,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
 
   const renderHistoryItemValue = (entry) => {
     if (entry.type === 'walk') {
-      return `${entry.value} kroków (${formatKm(entry.value * STEP_TO_KM)} KM)`;
+      return `${entry.value} steps (${formatKm(entry.value * STEP_TO_KM)} KM)`;
     }
     return `${entry.value} KM`;
   };
@@ -833,7 +833,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
         <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-[#111827] text-white shadow-lg shrink-0">
           <h2 className="font-semibold text-lg flex items-center gap-3">
             <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-            Dziennik:{' '}
+            Activity Log:{' '}
             <span className="text-blue-400 font-normal">{user?.name}</span>
           </h2>
           <Button
@@ -849,7 +849,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
         <div className="shrink-0 p-4 border-b border-slate-200">
           <section className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <h3 className="text-sm text-slate-500 mb-4 font-semibold uppercase tracking-wider">
-              Nowy Wpis
+              New Entry
             </h3>
             <form onSubmit={handleSaveNew} className="space-y-4">
               <div className="grid grid-cols-3 gap-3">
@@ -866,7 +866,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                   >
                     {getTypeIcon(t)}
                     <span className="mt-2 text-sm">
-                      {t === 'bike' ? 'Rower' : t === 'run' ? 'Bieg' : 'Spacer'}
+                      {t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : 'Walking'}
                     </span>
                   </button>
                 ))}
@@ -874,7 +874,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
 
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2">
-                  Ilość {type === 'walk' ? 'kroków' : 'kilometrów'}
+                  {type === 'walk' ? 'Number of steps' : 'Kilometers'}
                 </label>
                 <input
                   type="number"
@@ -895,7 +895,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
               )}
 
               <Button type="submit" className="w-full py-3.5 text-lg shadow-sm">
-                Zapisz dane
+                Save data
               </Button>
               <Button
                 type="button"
@@ -903,7 +903,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                 className="w-full py-3.5 text-lg bg-white"
                 onClick={handleClose}
               >
-                Zakończ
+                Done
               </Button>
             </form>
           </section>
@@ -913,16 +913,16 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
         <div className="flex-1 overflow-y-auto p-4">
           <section>
             <h3 className="text-sm text-slate-500 mb-4 font-semibold uppercase tracking-wider flex items-center justify-between px-1">
-              <span>Historia Wpisów</span>
+              <span>Entry History</span>
               <span className="text-slate-400 font-normal normal-case">
-                {userEntries.length} akcji
+                {userEntries.length} entries
               </span>
             </h3>
 
             <div className="space-y-3">
               {userEntries.length === 0 ? (
                 <p className="text-center text-slate-400 text-sm py-8 border border-dashed border-slate-300 rounded-xl bg-white">
-                  Brak historii.
+                  No entries yet.
                 </p>
               ) : (
                 userEntries.map((entry) => (
@@ -940,7 +940,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                             {renderHistoryItemValue(entry)}
                           </div>
                           <div className="text-xs text-slate-500">
-                            {new Date(entry.timestamp).toLocaleString('pl-PL')}
+                            {new Date(entry.timestamp).toLocaleString('en-GB')}
                           </div>
                         </div>
                       </div>
@@ -984,7 +984,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
         {editingId && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-              <h3 className="font-semibold text-slate-800 mb-4">Edytuj wpis</h3>
+              <h3 className="font-semibold text-slate-800 mb-4">Edit entry</h3>
               <form onSubmit={requestSaveEdit} className="space-y-4">
                 <div className="flex gap-2">
                   {['bike', 'run', 'walk'].map((t) => (
@@ -1000,7 +1000,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                     >
                       {getTypeIcon(t)}
                       <span className="mt-1 text-xs">
-                        {t === 'bike' ? 'Rower' : t === 'run' ? 'Bieg' : 'Spacer'}
+                        {t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : 'Walking'}
                       </span>
                     </button>
                   ))}
@@ -1021,10 +1021,10 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
                     className="flex-1"
                     onClick={() => { setEditingId(null); setConfirmAction(null); }}
                   >
-                    Anuluj
+                    Cancel
                   </Button>
                   <Button type="submit" variant="primary" className="flex-1">
-                    Zapisz
+                    Save
                   </Button>
                 </div>
               </form>
@@ -1038,15 +1038,15 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <div className="flex items-center gap-2 text-red-600 mb-2">
                 <AlertTriangle className="w-5 h-5" />
-                <span className="font-semibold">Usunąć wpis?</span>
+                <span className="font-semibold">Delete entry?</span>
               </div>
-              <p className="text-slate-500 text-sm mb-6">Tej operacji nie można cofnąć.</p>
+              <p className="text-slate-500 text-sm mb-6">This action cannot be undone.</p>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>
                   Anuluj
                 </Button>
                 <Button variant="danger" className="flex-1" onClick={confirmAction.onConfirm}>
-                  Usuń
+                  Delete
                 </Button>
               </div>
             </div>
