@@ -21,7 +21,7 @@ import {
   signInWithCustomToken,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
 // --- CONFIGURATION ---
 const GOAL_KM = 6000;
@@ -47,7 +47,7 @@ try {
       : MY_FIREBASE_CONFIG;
   app = initializeApp(configToUse);
   auth = getAuth(app);
-  db = getFirestore(app);
+  db = initializeFirestore(app, { localCache: persistentLocalCache() });
   appIdStr = typeof __app_id !== 'undefined' ? __app_id : 'my-sports-app-v1';
 } catch (e) {
   console.error('Błąd inicjalizacji Firebase:', e);
@@ -176,11 +176,22 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [data, setData] = useState({ users: [], entries: [] });
   const [isCloudLoading, setIsCloudLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [hasPendingWrites, setHasPendingWrites] = useState(false);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeUserId, setActiveUserId] = useState(null);
   const [newUserName, setNewUserName] = useState('');
   const [editingUser, setEditingUser] = useState(null);
+
+  // --- NETWORK CONNECTIVITY ---
+  useEffect(() => {
+    const up = () => setIsOnline(true);
+    const down = () => setIsOnline(false);
+    window.addEventListener('online', up);
+    window.addEventListener('offline', down);
+    return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); };
+  }, []);
 
   // --- FIREBASE AUTH & SYNC ---
   useEffect(() => {
@@ -218,10 +229,12 @@ export default function App() {
     );
     const unsubscribe = onSnapshot(
       docRef,
+      { includeMetadataChanges: true },
       (docSnap) => {
         if (docSnap.exists()) {
           setData(docSnap.data());
         }
+        setHasPendingWrites(docSnap.metadata.hasPendingWrites);
         setIsCloudLoading(false);
       },
       (err) => {
@@ -372,6 +385,12 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {!isOnline && (
+        <div className="bg-amber-500 text-white text-xs text-center py-2 px-4 shrink-0">
+          Brak połączenia — wpisy zostaną zsynchronizowane po powrocie online
+        </div>
+      )}
 
       <main className="flex-1 px-4 max-w-5xl w-full mx-auto overflow-x-hidden mt-4">
         {/* Mobile: card list */}
@@ -635,9 +654,17 @@ export default function App() {
           </div>
         </div>
         <div className="border-t border-slate-200 px-4 py-3 flex items-center gap-2 shrink-0">
-          <span className={`w-2 h-2 rounded-full animate-pulse ${isCloudLoading ? 'bg-red-500' : 'bg-blue-500'}`}></span>
+          <span className={`w-2 h-2 rounded-full animate-pulse ${
+            isCloudLoading ? 'bg-slate-400' :
+            !isOnline ? 'bg-red-500' :
+            hasPendingWrites ? 'bg-amber-400' :
+            'bg-blue-500'
+          }`}></span>
           <span className="text-xs text-slate-500">
-            {isCloudLoading ? 'Łączenie z bazą...' : 'Połączono z chmurą'}
+            {isCloudLoading ? 'Łączenie z bazą...' :
+             !isOnline ? 'Offline' :
+             hasPendingWrites ? 'Synchronizacja...' :
+             'Połączono z chmurą'}
           </span>
         </div>
       </aside>
