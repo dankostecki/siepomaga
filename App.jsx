@@ -1043,7 +1043,7 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
               <p className="text-slate-500 text-sm mb-6">This action cannot be undone.</p>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>
-                  Anuluj
+                  Cancel
                 </Button>
                 <Button variant="danger" className="flex-1" onClick={confirmAction.onConfirm}>
                   Delete
@@ -1063,10 +1063,10 @@ function ActivityModal({ userId, user, onClose, data, setData }) {
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={() => setConfirmAction(null)}>
-                  Anuluj
+                  Cancel
                 </Button>
                 <Button variant="primary" className="flex-1" onClick={confirmAction.onConfirm}>
-                  Zapisz
+                  Save
                 </Button>
               </div>
             </div>
