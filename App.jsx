@@ -302,7 +302,7 @@ export default function App() {
       name: newUserName.trim(),
     };
     setDataSync((prev) => ({ ...prev, users: [...prev.users, newUser] }));
-    saveLocalOrder([...localOrder, newUser.id]);
+    saveLocalOrder([newUser.id, ...localOrder]);
     setNewUserName('');
   };
 
