@@ -184,6 +184,32 @@ export default function App() {
   const [newUserName, setNewUserName] = useState('');
   const [editingUser, setEditingUser] = useState(null);
 
+  // --- LOCAL ORDER (per-device, stored in localStorage) ---
+  const [localOrder, setLocalOrder] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cmcUserOrder') || '[]'); }
+    catch { return []; }
+  });
+
+  const saveLocalOrder = (order) => {
+    setLocalOrder(order);
+    localStorage.setItem('cmcUserOrder', JSON.stringify(order));
+  };
+
+  // When Firebase adds users not yet in local order, append them
+  useEffect(() => {
+    const known = new Set(localOrder);
+    const newIds = data.users.filter(u => !known.has(u.id)).map(u => u.id);
+    if (newIds.length > 0) saveLocalOrder([...localOrder, ...newIds]);
+  }, [data.users]);
+
+  // Users sorted by local preference
+  const sortedUsers = useMemo(() => {
+    const map = Object.fromEntries(data.users.map(u => [u.id, u]));
+    const ordered = localOrder.map(id => map[id]).filter(Boolean);
+    const extra = data.users.filter(u => !localOrder.includes(u.id));
+    return [...ordered, ...extra];
+  }, [data.users, localOrder]);
+
   // --- NETWORK CONNECTIVITY ---
   useEffect(() => {
     const up = () => setIsOnline(true);
@@ -274,9 +300,9 @@ export default function App() {
     const newUser = {
       id: Date.now().toString(),
       name: newUserName.trim(),
-      order: data.users.length,
     };
     setDataSync((prev) => ({ ...prev, users: [...prev.users, newUser] }));
+    saveLocalOrder([...localOrder, newUser.id]);
     setNewUserName('');
   };
 
@@ -286,25 +312,18 @@ export default function App() {
         users: prev.users.filter((u) => u.id !== id),
         entries: prev.entries.filter((e) => e.userId !== id),
       }));
+      saveLocalOrder(localOrder.filter((uid) => uid !== id));
     }
   };
 
   const moveUser = (index, direction) => {
-    setDataSync((prev) => {
-      const newUsers = [...prev.users].sort((a, b) => a.order - b.order);
-      if (direction === 'up' && index > 0) {
-        [newUsers[index - 1].order, newUsers[index].order] = [
-          newUsers[index].order,
-          newUsers[index - 1].order,
-        ];
-      } else if (direction === 'down' && index < newUsers.length - 1) {
-        [newUsers[index + 1].order, newUsers[index].order] = [
-          newUsers[index].order,
-          newUsers[index + 1].order,
-        ];
-      }
-      return { ...prev, users: newUsers };
-    });
+    const newOrder = sortedUsers.map((u) => u.id);
+    if (direction === 'up' && index > 0) {
+      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    } else if (direction === 'down' && index < newOrder.length - 1) {
+      [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
+    }
+    saveLocalOrder(newOrder);
   };
 
   // --- CALCULATIONS ---
@@ -402,8 +421,7 @@ export default function App() {
                 : 'No team members. Add users from the menu.'}
             </div>
           ) : (
-            [...data.users]
-              .sort((a, b) => a.order - b.order)
+            sortedUsers
               .map((user) => (
                 <div
                   key={user.id}
@@ -482,8 +500,7 @@ export default function App() {
                   </td>
                 </tr>
               ) : (
-                [...data.users]
-                  .sort((a, b) => a.order - b.order)
+                sortedUsers
                   .map((user, index) => {
                     const isEven = index % 2 === 0;
                     const rowBgClass = isEven ? 'bg-white' : 'bg-[#f8fbff]';
@@ -607,8 +624,7 @@ export default function App() {
           </form>
 
           <div className="space-y-2">
-            {[...data.users]
-              .sort((a, b) => a.order - b.order)
+            {sortedUsers
               .map((user, index, arr) => (
                 <div
                   key={user.id}
