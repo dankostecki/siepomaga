@@ -201,7 +201,7 @@ export default function App() {
     catch { return null; }
   });
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [identityTarget, setIdentityTarget] = useState(null);
   const [addUserError, setAddUserError] = useState('');
   const [showAdminPin, setShowAdminPin] = useState(false);
@@ -420,9 +420,7 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col selection:bg-blue-200 selection:text-slate-900 pb-16 md:pb-0">
       {!pinVerified && <PinScreen onSuccess={() => {
         setPinVerified(true);
-        if (!localStorage.getItem('cmcWelcomeSeen')) {
-          setShowWelcome(true);
-        }
+        if (!currentUser) setShowOnboarding(true);
       }} />}
       <header className="sticky top-0 z-20 shadow-md">
         <div className="bg-white border-b border-slate-100">
@@ -694,29 +692,6 @@ export default function App() {
             )}
           </div>
 
-          {!currentUser && (
-            <form onSubmit={addUser} className="mb-6">
-              <label className="block text-sm font-medium text-slate-600 mb-2">
-                Add yourself
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  value={newUserName}
-                  onChange={(e) => { setNewUserName(e.target.value); setAddUserError(''); }}
-                  className={`flex-1 bg-white border rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none px-3 py-2 text-slate-900 placeholder:text-slate-400 ${addUserError ? 'border-red-400' : 'border-slate-300'}`}
-                  maxLength={25}
-                />
-                <Button type="submit" variant="primary" className="px-3 py-2 rounded-md">
-                  <Plus className="w-5 h-5" />
-                </Button>
-              </div>
-              {addUserError && (
-                <p className="text-xs text-red-500 mt-1">{addUserError}</p>
-              )}
-            </form>
-          )}
           {isAdmin && (
             <form onSubmit={addUser} className="mb-6">
               <label className="block text-sm font-medium text-slate-600 mb-2">
@@ -900,12 +875,25 @@ export default function App() {
         />
       )}
 
-      {/* WELCOME MODAL */}
-      {showWelcome && (
-        <WelcomeModal onClose={() => {
-          localStorage.setItem('cmcWelcomeSeen', 'true');
-          setShowWelcome(false);
-        }} />
+      {/* ONBOARDING MODAL */}
+      {showOnboarding && (
+        <OnboardingModal
+          users={data.users}
+          isDataLoading={isCloudLoading}
+          onIdentify={(user) => { saveCurrentUser(user); setShowOnboarding(false); }}
+          onNewUser={(name) => {
+            const trimmed = name.trim();
+            if (!trimmed) return { error: 'Please enter a name.' };
+            const dup = data.users.some(u => u.name.toLowerCase() === trimmed.toLowerCase());
+            if (dup) return { error: 'This name is already taken.' };
+            const newUser = { id: Date.now().toString(), name: trimmed };
+            setDataSync(prev => ({ ...prev, users: [...prev.users, newUser] }));
+            saveLocalOrder([newUser.id, ...localOrder]);
+            saveCurrentUser(newUser);
+            return { user: newUser };
+          }}
+          onDismiss={() => setShowOnboarding(false)}
+        />
       )}
 
       {/* ADMIN PIN POPUP */}
@@ -932,10 +920,38 @@ export default function App() {
   );
 }
 
-// --- SUBCOMPONENT: WELCOME MODAL ---
-function WelcomeModal({ onClose }) {
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+// --- SUBCOMPONENT: ONBOARDING MODAL ---
+function OnboardingModal({ users, isDataLoading, onIdentify, onNewUser, onDismiss }) {
+  const [path, setPath] = useState(null); // null | 'new' | 'existing'
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [step, setStep] = useState('pick'); // 'pick' | 'instructions'
+  const [createdUser, setCreatedUser] = useState(null);
+  const [matches, setMatches] = useState([]);
+
+  const reset = (newPath) => { setPath(newPath); setName(''); setError(''); setMatches([]); };
+
+  const handleNewUser = () => {
+    const result = onNewUser(name);
+    if (result.error) { setError(result.error); return; }
+    setCreatedUser(result.user);
+    setStep('instructions');
+  };
+
+  const handleFind = () => {
+    const q = name.trim().toLowerCase();
+    if (!q) { setError('Please enter your name.'); return; }
+    const exact = users.find(u => u.name.toLowerCase() === q);
+    if (exact) { onIdentify(exact); return; }
+    const partial = users.filter(u => u.name.toLowerCase().includes(q));
+    if (partial.length === 1) { onIdentify(partial[0]); return; }
+    if (partial.length > 1) { setMatches(partial); setError(''); return; }
+    setError('No user found. Try the exact name from the leaderboard.');
+  };
+
+  // --- Picker ---
+  if (path === null) return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
         <div className="bg-[#111827] p-5 text-white text-center">
           <div className="w-10 h-10 bg-blue-500 rounded-xl mx-auto flex items-center justify-center mb-3">
@@ -944,30 +960,147 @@ function WelcomeModal({ onClose }) {
           <h2 className="text-lg font-semibold">Welcome to the Challenge!</h2>
           <p className="text-slate-400 text-sm mt-1">CMC Markets · SiePomaga</p>
         </div>
-        <div className="p-6 space-y-4 text-sm text-slate-600">
-          <div className="flex gap-3">
-            <span className="text-blue-500 font-bold shrink-0">1.</span>
-            <span>Tap your name on the leaderboard to log cycling, running, or walking km.</span>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-blue-500 font-bold shrink-0">2.</span>
-            <span>First choose an activity type — then the input field will appear.</span>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-blue-500 font-bold shrink-0">3.</span>
-            <span>Your entries are saved to the cloud and visible to everyone in the team.</span>
-          </div>
-          <div className="flex gap-3">
-            <span className="text-blue-500 font-bold shrink-0">4.</span>
-            <span>On a new device? Tap your row and identify yourself to keep logging.</span>
-          </div>
+        <div className="p-4 space-y-3">
+          <button
+            className="w-full text-left p-4 rounded-xl border-2 border-blue-200 bg-blue-50 hover:border-blue-400 hover:bg-blue-100 transition-colors"
+            onClick={() => reset('new')}
+          >
+            <p className="font-semibold text-slate-800">First time here? 👋</p>
+            <p className="text-sm text-slate-500 mt-0.5">Create your account to start logging km</p>
+          </button>
+          <button
+            className="w-full text-left p-4 rounded-xl border-2 border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 transition-colors"
+            onClick={() => reset('existing')}
+          >
+            <p className="font-semibold text-slate-800">Already have an account?</p>
+            <p className="text-sm text-slate-500 mt-0.5">Identify yourself if you're on a new device</p>
+          </button>
         </div>
-        <div className="px-6 pb-6">
+        <div className="pb-4 text-center">
+          <button className="text-xs text-slate-400 hover:text-slate-600 transition-colors" onClick={onDismiss}>
+            Skip for now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // --- Path A: instructions after creation ---
+  if (path === 'new' && step === 'instructions') return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="bg-[#111827] p-5 text-white text-center">
+          <div className="w-10 h-10 bg-green-500 rounded-xl mx-auto flex items-center justify-center mb-3">
+            <span className="text-white text-lg font-bold">✓</span>
+          </div>
+          <h2 className="text-lg font-semibold">You're all set, {createdUser?.name}!</h2>
+          <p className="text-slate-400 text-sm mt-1">Here's how the app works</p>
+        </div>
+        <div className="p-5 space-y-3 text-sm text-slate-600">
+          {[
+            'Tap your name on the leaderboard to open your activity log.',
+            'Choose an activity — Cycling, Running, Walking, or Skating — then enter the distance.',
+            'Tap Save, or just tap Done — your entry saves automatically either way.',
+            'Everything syncs to the cloud and is visible to the whole team in real time.',
+          ].map((text, i) => (
+            <div key={i} className="flex gap-3">
+              <span className="text-blue-500 font-bold shrink-0">{i + 1}.</span>
+              <span>{text}</span>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 pb-5">
           <button
             className="w-full bg-blue-600 text-white font-medium py-3 rounded-xl hover:bg-blue-700 transition-colors"
-            onClick={onClose}
+            onClick={onDismiss}
           >
             Let's go!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // --- Path A: new user form ---
+  if (path === 'new') return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="bg-[#111827] p-4 text-white flex items-center gap-3">
+          <button onClick={() => reset(null)} className="text-slate-400 hover:text-white transition-colors text-sm">← Back</button>
+          <h3 className="font-semibold flex-1">First time here?</h3>
+        </div>
+        <div className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1.5">
+              Your name and first letter of surname
+            </label>
+            <input
+              type="text"
+              autoFocus
+              maxLength={25}
+              placeholder="e.g. John D"
+              value={name}
+              onChange={e => { setName(e.target.value); setError(''); }}
+              onKeyDown={e => e.key === 'Enter' && handleNewUser()}
+              className={`w-full border-2 rounded-xl px-4 py-3 text-slate-900 outline-none transition-colors ${error ? 'border-red-400 bg-red-50' : 'border-slate-200 focus:border-blue-500'}`}
+            />
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+          </div>
+          <button
+            className="w-full bg-blue-600 text-white font-medium py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40"
+            disabled={!name.trim()}
+            onClick={handleNewUser}
+          >
+            Create account
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // --- Path B: existing user ---
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="bg-[#111827] p-4 text-white flex items-center gap-3">
+          <button onClick={() => reset(null)} className="text-slate-400 hover:text-white transition-colors text-sm">← Back</button>
+          <h3 className="font-semibold flex-1">Already have an account?</h3>
+        </div>
+        <div className="p-5 space-y-4">
+          <p className="text-sm text-slate-500">Type your username exactly as it appears on the leaderboard.</p>
+          {isDataLoading ? (
+            <div className="text-center py-4 text-slate-400 text-sm">Loading users, please wait...</div>
+          ) : (
+            <>
+              <input
+                type="text"
+                autoFocus
+                placeholder="e.g. John D"
+                value={name}
+                onChange={e => { setName(e.target.value); setError(''); setMatches([]); }}
+                onKeyDown={e => e.key === 'Enter' && handleFind()}
+                className={`w-full border-2 rounded-xl px-4 py-3 text-slate-900 outline-none transition-colors ${error ? 'border-red-400 bg-red-50' : 'border-slate-200 focus:border-blue-500'}`}
+              />
+              {error && <p className="text-xs text-red-500">{error}</p>}
+              {matches.length > 1 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs text-slate-500">Multiple matches — pick yours:</p>
+                  {matches.map(u => (
+                    <button key={u.id} onClick={() => onIdentify(u)}
+                      className="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-colors font-medium text-slate-800 text-sm">
+                      {u.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          <button
+            className="w-full bg-blue-600 text-white font-medium py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40"
+            disabled={isDataLoading || !name.trim()}
+            onClick={handleFind}
+          >
+            Find my account
           </button>
         </div>
       </div>
