@@ -1068,7 +1068,7 @@ function IdentityPopup({ users, onIdentify, onClose }) {
 
 // --- SUBCOMPONENT: ACTIVITY MODAL ---
 function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAdmin }) {
-  const [type, setType] = useState(null);
+  const [type, setType] = useState('bike');
   const [value, setValue] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const canEdit = isAdmin || currentUser?.id === userId;
@@ -1090,7 +1090,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
 
   const handleSaveNew = (e) => {
     e.preventDefault();
-    if (!type || !value || isNaN(value) || value <= 0) return;
+    if (!value || isNaN(value) || value <= 0) return;
 
     const newEntry = {
       id: Date.now().toString(),
@@ -1102,7 +1102,6 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
 
     setData((prev) => ({ ...prev, entries: [newEntry, ...prev.entries] }));
     setValue('');
-    setType(null);
   };
 
   const startEdit = (entry) => {
@@ -1184,7 +1183,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                       <button
                         key={t}
                         type="button"
-                        onClick={() => { setType(t); setValue(''); }}
+                        onClick={() => setType(t)}
                         className={`flex flex-col items-center justify-center p-3 rounded-lg border font-medium transition-colors ${
                           type === t
                             ? 'bg-blue-50 text-blue-700 border-blue-500 shadow-sm'
@@ -1199,25 +1198,21 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                     ))}
                   </div>
 
-                  {type !== null && (
-                    <div>
-                      <label className="block text-sm font-medium text-slate-600 mb-2">
-                        {type === 'walk' ? 'Number of steps' : 'Kilometers'}
-                      </label>
-
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        step="any"
-                        min="0"
-                        value={value}
-                        autoFocus
-                        onChange={(e) => setValue(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-lg p-4 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
-                        placeholder="0"
-                      />
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      {type === 'walk' ? 'Number of steps' : 'Kilometers'}
+                    </label>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="any"
+                      min="0"
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-lg p-4 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
+                      placeholder={type === 'walk' ? 'e.g. 8000 steps' : 'e.g. 15.5 km'}
+                    />
+                  </div>
 
                   {type === 'walk' && value > 0 && (
                     <div className="text-center text-sm text-blue-600 font-semibold bg-blue-50 py-2 rounded-lg">
@@ -1225,11 +1220,9 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                     </div>
                   )}
 
-                  {type !== null && (
-                    <Button type="submit" className="w-full py-3.5 text-lg shadow-sm">
-                      Save data
-                    </Button>
-                  )}
+                  <Button type="submit" className="w-full py-3.5 text-lg shadow-sm">
+                    Save data
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
