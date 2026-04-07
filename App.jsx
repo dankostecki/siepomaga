@@ -487,7 +487,13 @@ export default function App() {
           <MyActivityCard
             currentUser={currentUser}
             userStats={stats.userStats[currentUser.id]}
+            entries={data.entries}
             onSave={(entry) => setDataSync(prev => ({ ...prev, entries: [entry, ...prev.entries] }))}
+            onDelete={(id) => setDataSync(prev => ({ ...prev, entries: prev.entries.filter(e => e.id !== id) }))}
+            onEdit={(id, type, value) => setDataSync(prev => ({
+              ...prev,
+              entries: prev.entries.map(e => e.id === id ? { ...e, type, value } : e),
+            }))}
           />
         )}
 
@@ -501,6 +507,7 @@ export default function App() {
             </div>
           ) : (
             sortedUsers
+              .filter((user) => user.id !== currentUser?.id)
               .map((user) => (
                 <div
                   key={user.id}
@@ -591,6 +598,7 @@ export default function App() {
                 </tr>
               ) : (
                 sortedUsers
+                  .filter((user) => user.id !== currentUser?.id)
                   .map((user, index) => {
                     const isEven = index % 2 === 0;
                     const rowBgClass = isEven ? 'bg-white' : 'bg-[#f8fbff]';
@@ -1244,9 +1252,18 @@ function IdentityPopup({ users, onIdentify, onClose }) {
 }
 
 // --- SUBCOMPONENT: MY ACTIVITY CARD ---
-function MyActivityCard({ currentUser, userStats, onSave }) {
+function MyActivityCard({ currentUser, userStats, onSave, entries, onDelete, onEdit }) {
   const [type, setType] = useState('bike');
   const [value, setValue] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editType, setEditType] = useState('bike');
+  const [editValue, setEditValue] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  const userEntries = entries
+    .filter(e => e.userId === currentUser.id)
+    .sort((a, b) => b.timestamp - a.timestamp);
 
   const getTypeIcon = (t, size = 'w-5 h-5') => {
     if (t === 'bike') return <Bike className={size} />;
@@ -1269,16 +1286,16 @@ function MyActivityCard({ currentUser, userStats, onSave }) {
   };
 
   return (
-    <div className="mb-4 rounded-2xl overflow-hidden shadow-lg border border-blue-200">
+    <div className="mb-4 rounded-2xl overflow-hidden border border-blue-300" style={{boxShadow: '0 4px 24px 0 rgba(59,130,246,0.25)'}}>
       {/* Header */}
-      <div className="bg-[#111827] px-5 py-4">
-        <p className="text-blue-400 text-xs font-semibold uppercase tracking-wider mb-0.5">Your dashboard</p>
+      <div className="bg-blue-600 px-5 py-4">
+        <p className="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-0.5">Your dashboard</p>
         <h2 className="text-white text-lg font-bold">{currentUser.name}</h2>
-        <p className="text-slate-400 text-sm mt-0.5">Share your today's achievement with the team!</p>
+        <p className="text-blue-100 text-sm mt-0.5">Share your today's achievement with the team!</p>
       </div>
 
       {/* Stats row */}
-      <div className="bg-[#1a2234] grid grid-cols-4 divide-x divide-slate-700 text-center text-xs">
+      <div className="bg-blue-700 grid grid-cols-4 divide-x divide-blue-500 text-center text-xs">
         {[
           { icon: <Bike className="w-3.5 h-3.5" />, label: 'Cycling', val: userStats.bike },
           { icon: <Activity className="w-3.5 h-3.5" />, label: 'Running', val: userStats.run },
@@ -1286,7 +1303,7 @@ function MyActivityCard({ currentUser, userStats, onSave }) {
           { icon: <RollerSkateIcon className="w-3.5 h-3.5" />, label: 'Skating', val: userStats.rollerblade },
         ].map(({ icon, label, val }) => (
           <div key={label} className="py-3 px-1">
-            <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">{icon} {label}</div>
+            <div className="flex items-center justify-center gap-1 text-blue-200 mb-1">{icon} {label}</div>
             <div className="font-semibold text-white">{formatKm(val)}</div>
           </div>
         ))}
@@ -1337,6 +1354,82 @@ function MyActivityCard({ currentUser, userStats, onSave }) {
             </div>
           )}
         </form>
+
+        {/* History toggle */}
+        <button
+          className="w-full mt-3 text-xs text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-1"
+          onClick={() => setHistoryOpen(o => !o)}
+        >
+          {historyOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          {historyOpen ? 'Hide history' : `My entries (${userEntries.length})`}
+        </button>
+
+        {historyOpen && (
+          <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
+            {userEntries.length === 0 ? (
+              <p className="text-center text-slate-400 text-xs py-4">No entries yet.</p>
+            ) : userEntries.map(entry => (
+              <div key={entry.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                {editingId === entry.id ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {['bike','run','walk','rollerblade'].map(t => (
+                        <button key={t} type="button" onClick={() => setEditType(t)}
+                          className={`flex flex-col items-center py-2 rounded-lg border text-xs font-medium transition-colors ${editType === t ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 text-slate-500'}`}>
+                          {getTypeIcon(t)}
+                          <span className="mt-0.5">{t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : t === 'walk' ? 'Walking' : 'Skating'}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <input type="number" inputMode="decimal" step="any" value={editValue}
+                      onChange={e => setEditValue(e.target.value)} autoFocus
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-center font-bold text-slate-900 focus:outline-none focus:border-blue-500" />
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingId(null)}
+                        className="flex-1 py-2 rounded-lg border border-slate-300 text-slate-600 text-sm hover:bg-slate-50">Cancel</button>
+                      <button onClick={() => { onEdit(entry.id, editType, Number(editValue)); setEditingId(null); }}
+                        disabled={!editValue || isNaN(editValue) || Number(editValue) <= 0}
+                        className="flex-1 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-40">Save</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="text-blue-600">{getTypeIcon(entry.type, 'w-4 h-4')}</div>
+                      <div>
+                        <div className="font-semibold text-slate-800 text-sm">
+                          {entry.type === 'walk' ? `${entry.value} steps (${formatKm(entry.value * STEP_TO_KM)} km)` : `${entry.value} km`}
+                        </div>
+                        <div className="text-xs text-slate-400">{new Date(entry.timestamp).toLocaleString('en-GB')}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {confirmDeleteId === entry.id ? (
+                        <>
+                          <button onClick={() => setConfirmDeleteId(null)}
+                            className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-500 hover:bg-slate-50">No</button>
+                          <button onClick={() => { onDelete(entry.id); setConfirmDeleteId(null); }}
+                            className="text-xs px-2 py-1 rounded border border-red-400 text-red-600 hover:bg-red-50">Yes, delete</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditingId(entry.id); setEditType(entry.type); setEditValue(entry.value); }}
+                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => setConfirmDeleteId(entry.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
