@@ -347,6 +347,8 @@ export default function App() {
     setDataSync((prev) => ({ ...prev, users: [...prev.users, newUser] }));
     saveLocalOrder([newUser.id, ...localOrder]);
     setNewUserName('');
+    // Auto-identify as the newly added user (only if not already identified)
+    if (!currentUser) saveCurrentUser(newUser);
   };
 
   const removeUser = (id) => {
@@ -696,6 +698,29 @@ export default function App() {
             )}
           </div>
 
+          {!currentUser && (
+            <form onSubmit={addUser} className="mb-6">
+              <label className="block text-sm font-medium text-slate-600 mb-2">
+                Add yourself
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={newUserName}
+                  onChange={(e) => { setNewUserName(e.target.value); setAddUserError(''); }}
+                  className={`flex-1 bg-white border rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none px-3 py-2 text-slate-900 placeholder:text-slate-400 ${addUserError ? 'border-red-400' : 'border-slate-300'}`}
+                  maxLength={25}
+                />
+                <Button type="submit" variant="primary" className="px-3 py-2 rounded-md">
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </div>
+              {addUserError && (
+                <p className="text-xs text-red-500 mt-1">{addUserError}</p>
+              )}
+            </form>
+          )}
           {isAdmin && (
             <form onSubmit={addUser} className="mb-6">
               <label className="block text-sm font-medium text-slate-600 mb-2">
@@ -710,11 +735,7 @@ export default function App() {
                   className={`flex-1 bg-white border rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none px-3 py-2 text-slate-900 placeholder:text-slate-400 ${addUserError ? 'border-red-400' : 'border-slate-300'}`}
                   maxLength={25}
                 />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="px-3 py-2 rounded-md"
-                >
+                <Button type="submit" variant="primary" className="px-3 py-2 rounded-md">
                   <Plus className="w-5 h-5" />
                 </Button>
               </div>
@@ -751,15 +772,17 @@ export default function App() {
                     >
                       <ChevronDown className="w-5 h-5" />
                     </Button>
+                    {(isAdmin || currentUser?.id === user.id) && (
+                      <Button
+                        variant="ghost"
+                        className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                        onClick={() => setEditingUser(user)}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                    )}
                     {isAdmin && (
                       <>
-                        <Button
-                          variant="ghost"
-                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                          onClick={() => setEditingUser(user)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
                         <Button
                           variant="ghost"
                           className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50"
@@ -1075,6 +1098,16 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
   useEffect(() => { requestAnimationFrame(() => setIsVisible(true)); }, []);
 
   const handleClose = () => {
+    // Auto-save if there's a valid unsaved value
+    if (canEdit && value && !isNaN(value) && Number(value) > 0) {
+      setData((prev) => ({
+        ...prev,
+        entries: [
+          { id: Date.now().toString(), userId, type, value: Number(value), timestamp: Date.now() },
+          ...prev.entries,
+        ],
+      }));
+    }
     setIsVisible(false);
     setTimeout(onClose, 300);
   };
@@ -1210,7 +1243,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                       value={value}
                       onChange={(e) => setValue(e.target.value)}
                       className="w-full bg-white border border-slate-300 rounded-lg p-4 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
-                      placeholder={type === 'walk' ? 'e.g. 8000 steps' : 'e.g. 15.5 km'}
+                      placeholder={type === 'walk' ? 'e.g. 8000 — tap Save or Done' : 'e.g. 15.5 — tap Save or Done'}
                     />
                   </div>
 
@@ -1229,7 +1262,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                     className="w-full py-3.5 text-lg bg-white"
                     onClick={handleClose}
                   >
-                    Done
+                    {value && !isNaN(value) && Number(value) > 0 ? 'Save & Close' : 'Done'}
                   </Button>
                 </form>
               </>
