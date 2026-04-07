@@ -205,6 +205,7 @@ export default function App() {
   const [identityTarget, setIdentityTarget] = useState(null);
   const [addUserError, setAddUserError] = useState('');
   const [showAdminPin, setShowAdminPin] = useState(false);
+  const dragId = React.useRef(null);
 
   // --- LOCAL ORDER (per-device, stored in localStorage) ---
   const [localOrder, setLocalOrder] = useState(() => {
@@ -515,8 +516,7 @@ export default function App() {
                   onClick={() => handleRowClick(user.id)}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-1.5 font-semibold text-blue-700">
-                      <Plus className="w-3.5 h-3.5 text-blue-400" />
+                    <div className="font-semibold text-blue-700">
                       {user.name}
                     </div>
                     <span className="text-lg font-bold text-blue-600">
@@ -613,10 +613,7 @@ export default function App() {
                         <td
                           className={`p-4 sticky left-0 z-10 border-r border-slate-200 font-semibold text-blue-700 transition-colors ${rowBgClass} group-hover:bg-blue-50 group-hover:text-blue-800`}
                         >
-                          <div className="flex items-center gap-1.5">
-                            <Plus className="w-3.5 h-3.5 text-blue-400 group-hover:text-blue-600" />
-                            {user.name}
-                          </div>
+                          {user.name}
                         </td>
                         <td className="p-4 text-right text-slate-600">
                           {formatKm(stats.userStats[user.id]?.bike)}
@@ -759,11 +756,28 @@ export default function App() {
               .map((user, index, arr) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-3 border border-slate-200 rounded-md bg-white shadow-sm"
+                  draggable
+                  onDragStart={() => { dragId.current = user.id; }}
+                  onDragOver={(e) => { e.preventDefault(); }}
+                  onDrop={() => {
+                    if (!dragId.current || dragId.current === user.id) return;
+                    const order = sortedUsers.map(u => u.id);
+                    const from = order.indexOf(dragId.current);
+                    const to = order.indexOf(user.id);
+                    order.splice(from, 1);
+                    order.splice(to, 0, dragId.current);
+                    saveLocalOrder(order);
+                    dragId.current = null;
+                  }}
+                  onDragEnd={() => { dragId.current = null; }}
+                  className="flex items-center justify-between p-3 border border-slate-200 rounded-md bg-white shadow-sm cursor-grab active:cursor-grabbing active:border-blue-400 active:bg-blue-50 transition-colors"
                 >
-                  <span className="font-medium text-slate-800 truncate max-w-[100px]">
-                    {user.name}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-300 select-none">⠿</span>
+                    <span className="font-medium text-slate-800 truncate max-w-[100px]">
+                      {user.name}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
