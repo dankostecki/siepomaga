@@ -425,37 +425,41 @@ export default function App() {
         }
       }} />}
       <header className="sticky top-0 z-20 shadow-md">
-        <div className="bg-white px-4 py-3 flex items-center gap-3 border-b border-slate-100">
-          <img
-            src="https://raw.githubusercontent.com/dankostecki/siepomaga/refs/heads/main/cmc-markets-log.png"
-            alt="CMC Markets"
-            className="h-8 w-auto"
-          />
-          <div className="w-0.5 h-6 bg-blue-500 rounded-full shrink-0"></div>
-          <span className="text-sm font-semibold text-slate-800 flex-1">SiePomaga Charity Challenge</span>
-          <Button
-            variant="ghost"
-            className="text-slate-800 hover:text-blue-600 hover:bg-slate-100"
-            onClick={() => setIsDrawerOpen(true)}
-          >
-            <Menu className="w-6 h-6" />
-          </Button>
-        </div>
-        <div className="bg-[#111827] px-4 pt-2.5 pb-3">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs font-semibold text-white">
-              {formatKm(stats.globalTotal)}{' '}
-              <span className="text-slate-400 font-normal">/ {GOAL_KM} KM</span>
-            </span>
-            <span className="text-xs text-slate-400">
-              remaining <span className="font-medium text-slate-300">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
-            </span>
+        <div className="bg-white border-b border-slate-100">
+          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+            <img
+              src="https://raw.githubusercontent.com/dankostecki/siepomaga/refs/heads/main/cmc-markets-log.png"
+              alt="CMC Markets"
+              className="h-8 w-auto"
+            />
+            <div className="w-0.5 h-6 bg-blue-500 rounded-full shrink-0"></div>
+            <span className="text-sm font-semibold text-slate-800 flex-1">SiePomaga Charity Challenge</span>
+            <Button
+              variant="ghost"
+              className="text-slate-800 hover:text-blue-600 hover:bg-slate-100"
+              onClick={() => setIsDrawerOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </Button>
           </div>
-          <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 transition-all duration-1000 ease-out rounded-full"
-              style={{ width: `${progressPercent}%` }}
-            ></div>
+        </div>
+        <div className="bg-[#111827]">
+          <div className="max-w-5xl mx-auto px-4 pt-2.5 pb-3">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-xs font-semibold text-white">
+                {formatKm(stats.globalTotal)}{' '}
+                <span className="text-slate-400 font-normal">/ {GOAL_KM} KM</span>
+              </span>
+              <span className="text-xs text-slate-400">
+                remaining <span className="font-medium text-slate-300">{formatKm(GOAL_KM - stats.globalTotal)} km</span>
+              </span>
+            </div>
+            <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 transition-all duration-1000 ease-out rounded-full"
+                style={{ width: `${progressPercent}%` }}
+              ></div>
+            </div>
           </div>
         </div>
       </header>
