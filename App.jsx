@@ -976,11 +976,6 @@ function OnboardingModal({ users, isDataLoading, onIdentify, onNewUser, onDismis
             <p className="text-sm text-slate-500 mt-0.5">Identify yourself if you're on a new device</p>
           </button>
         </div>
-        <div className="pb-4 text-center">
-          <button className="text-xs text-slate-400 hover:text-slate-600 transition-colors" onClick={onDismiss}>
-            Skip for now
-          </button>
-        </div>
       </div>
     </div>
   );
