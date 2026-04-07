@@ -743,7 +743,7 @@ export default function App() {
                     >
                       <ChevronDown className="w-5 h-5" />
                     </Button>
-                    {(isAdmin || currentUser?.id === user.id) && (
+                    {isAdmin && (
                       <Button
                         variant="ghost"
                         className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
