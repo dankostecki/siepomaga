@@ -1286,16 +1286,16 @@ function MyActivityCard({ currentUser, userStats, onSave, entries, onDelete, onE
   };
 
   return (
-    <div className="mb-4 rounded-2xl overflow-hidden shadow-lg border border-blue-200">
+    <div className="mb-4 rounded-2xl overflow-hidden border border-blue-300" style={{boxShadow: '0 4px 24px 0 rgba(59,130,246,0.25)'}}>
       {/* Header */}
-      <div className="bg-[#111827] px-5 py-4">
-        <p className="text-blue-400 text-xs font-semibold uppercase tracking-wider mb-0.5">Your dashboard</p>
+      <div className="bg-blue-600 px-5 py-4">
+        <p className="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-0.5">Your dashboard</p>
         <h2 className="text-white text-lg font-bold">{currentUser.name}</h2>
-        <p className="text-slate-400 text-sm mt-0.5">Share your today's achievement with the team!</p>
+        <p className="text-blue-100 text-sm mt-0.5">Share your today's achievement with the team!</p>
       </div>
 
       {/* Stats row */}
-      <div className="bg-[#1a2234] grid grid-cols-4 divide-x divide-slate-700 text-center text-xs">
+      <div className="bg-blue-700 grid grid-cols-4 divide-x divide-blue-500 text-center text-xs">
         {[
           { icon: <Bike className="w-3.5 h-3.5" />, label: 'Cycling', val: userStats.bike },
           { icon: <Activity className="w-3.5 h-3.5" />, label: 'Running', val: userStats.run },
@@ -1303,7 +1303,7 @@ function MyActivityCard({ currentUser, userStats, onSave, entries, onDelete, onE
           { icon: <RollerSkateIcon className="w-3.5 h-3.5" />, label: 'Skating', val: userStats.rollerblade },
         ].map(({ icon, label, val }) => (
           <div key={label} className="py-3 px-1">
-            <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">{icon} {label}</div>
+            <div className="flex items-center justify-center gap-1 text-blue-200 mb-1">{icon} {label}</div>
             <div className="font-semibold text-white">{formatKm(val)}</div>
           </div>
         ))}
