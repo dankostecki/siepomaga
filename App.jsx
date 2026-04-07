@@ -237,11 +237,15 @@ export default function App() {
     if (newIds.length > 0) saveLocalOrder([...localOrder, ...newIds]);
   }, [data.users]);
 
-  // If the current user was deleted (e.g. by admin on another device), log out
+  // If the current user was deleted (e.g. by admin), full reset to PIN screen
   useEffect(() => {
     if (currentUser && data.users.length > 0) {
       const stillExists = data.users.some(u => u.id === currentUser.id);
-      if (!stillExists) saveCurrentUser(null);
+      if (!stillExists) {
+        saveCurrentUser(null);
+        localStorage.removeItem('cmcPinVerified');
+        setPinVerified(false);
+      }
     }
   }, [data.users]);
 
@@ -689,9 +693,17 @@ export default function App() {
           {/* Current user identity */}
           <div className="mb-5 p-3 bg-blue-50 border border-blue-100 rounded-lg">
             {currentUser ? (
-              <div>
-                <p className="text-xs text-blue-500 font-medium">Logged in as</p>
-                <p className="text-sm font-semibold text-blue-800">{currentUser.name}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-blue-500 font-medium">Logged in as</p>
+                  <p className="text-sm font-semibold text-blue-800">{currentUser.name}</p>
+                </div>
+                <button
+                  className="text-xs text-slate-400 hover:text-blue-600 transition-colors"
+                  onClick={() => { saveCurrentUser(null); setShowOnboarding(true); setIsDrawerOpen(false); }}
+                >
+                  Switch
+                </button>
               </div>
             ) : (
               <p className="text-xs text-slate-500">
