@@ -23,6 +23,17 @@ import {
 } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, doc, setDoc, onSnapshot } from 'firebase/firestore';
 
+// --- CUSTOM ICON: ROLLER SKATE ---
+const RollerSkateIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 17h14" />
+    <circle cx="8" cy="20" r="1.5" />
+    <circle cx="16" cy="20" r="1.5" />
+    <path d="M5 17V9a2 2 0 0 1 2-2h3.5L15 14h3a1 1 0 0 1 1 1v2" />
+    <path d="M10 7V5" />
+  </svg>
+);
+
 // --- CONFIGURATION ---
 const GOAL_KM = 6000;
 const STEP_TO_KM = 0.00072;
@@ -363,11 +374,12 @@ export default function App() {
     let globalBike = 0,
       globalRun = 0,
       globalWalk = 0,
+      globalRollerblade = 0,
       globalTotal = 0;
     const userStats = {};
 
     data.users.forEach((u) => {
-      userStats[u.id] = { bike: 0, run: 0, walk: 0, total: 0 };
+      userStats[u.id] = { bike: 0, run: 0, walk: 0, rollerblade: 0, total: 0 };
     });
 
     data.entries.forEach((entry) => {
@@ -386,13 +398,17 @@ export default function App() {
         kmValue = Number(entry.value);
         userStats[entry.userId].run += kmValue;
         globalRun += kmValue;
+      } else if (entry.type === 'rollerblade') {
+        kmValue = Number(entry.value);
+        userStats[entry.userId].rollerblade += kmValue;
+        globalRollerblade += kmValue;
       }
 
       userStats[entry.userId].total += kmValue;
       globalTotal += kmValue;
     });
 
-    return { globalBike, globalRun, globalWalk, globalTotal, userStats };
+    return { globalBike, globalRun, globalWalk, globalRollerblade, globalTotal, userStats };
   }, [data]);
 
   const progressPercent = Math.min((stats.globalTotal / GOAL_KM) * 100, 100);
@@ -474,7 +490,7 @@ export default function App() {
                       {formatKm(stats.userStats[user.id]?.total)} km
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
                     <div className="bg-slate-50 rounded-lg p-2">
                       <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
                         <Bike className="w-3.5 h-3.5" /> Cycling
@@ -499,6 +515,14 @@ export default function App() {
                         {formatKm(stats.userStats[user.id]?.walk)}
                       </div>
                     </div>
+                    <div className="bg-slate-50 rounded-lg p-2">
+                      <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
+                        <RollerSkateIcon className="w-3.5 h-3.5" /> Skating
+                      </div>
+                      <div className="font-medium text-slate-700">
+                        {formatKm(stats.userStats[user.id]?.rollerblade)}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))
@@ -521,6 +545,9 @@ export default function App() {
                 </th>
                 <th className="p-4 text-right border-l border-slate-200">
                   <Footprints className="inline w-4 h-4 mr-1" /> Walking
+                </th>
+                <th className="p-4 text-right border-l border-slate-200">
+                  <RollerSkateIcon className="inline w-4 h-4 mr-1" /> Skating
                 </th>
                 <th className="p-4 text-right font-bold text-blue-600 border-l border-slate-200">
                   Total (KM)
@@ -566,6 +593,9 @@ export default function App() {
                         <td className="p-4 text-right text-slate-600 border-l border-slate-200">
                           {formatKm(stats.userStats[user.id]?.walk)}
                         </td>
+                        <td className="p-4 text-right text-slate-600 border-l border-slate-200">
+                          {formatKm(stats.userStats[user.id]?.rollerblade)}
+                        </td>
                         <td className="p-4 text-right font-bold text-blue-600 text-lg border-l border-slate-200">
                           {formatKm(stats.userStats[user.id]?.total)}
                         </td>
@@ -586,6 +616,9 @@ export default function App() {
                 <td className="p-4 text-right border-l border-slate-700">
                   {formatKm(stats.globalWalk)}
                 </td>
+                <td className="p-4 text-right border-l border-slate-700">
+                  {formatKm(stats.globalRollerblade)}
+                </td>
                 <td className="p-4 text-right text-xl text-white font-bold border-l border-slate-700">
                   {formatKm(stats.globalTotal)}
                 </td>
@@ -598,7 +631,7 @@ export default function App() {
       {/* MOBILE BOTTOM BAR */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#111827] border-t border-slate-700">
         <div className="max-w-5xl mx-auto px-4 py-2">
-          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+          <div className="grid grid-cols-4 gap-2 text-center text-xs">
             <div className="flex flex-col items-center gap-0.5">
               <Bike className="w-4 h-4 text-blue-400" />
               <span className="text-slate-300 font-medium">{formatKm(stats.globalBike)}</span>
@@ -610,6 +643,10 @@ export default function App() {
             <div className="flex flex-col items-center gap-0.5">
               <Footprints className="w-4 h-4 text-blue-400" />
               <span className="text-slate-300 font-medium">{formatKm(stats.globalWalk)}</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <RollerSkateIcon className="w-4 h-4 text-blue-400" />
+              <span className="text-slate-300 font-medium">{formatKm(stats.globalRollerblade)}</span>
             </div>
           </div>
         </div>
@@ -1106,6 +1143,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
   const getTypeIcon = (t) => {
     if (t === 'bike') return <Bike className="w-5 h-5" />;
     if (t === 'run') return <Activity className="w-5 h-5" />;
+    if (t === 'rollerblade') return <RollerSkateIcon className="w-5 h-5" />;
     return <Footprints className="w-5 h-5" />;
   };
 
@@ -1141,8 +1179,8 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                   New Entry
                 </h3>
                 <form onSubmit={handleSaveNew} className="space-y-4">
-                  <div className="grid grid-cols-3 gap-3">
-                    {['bike', 'run', 'walk'].map((t) => (
+                  <div className="grid grid-cols-4 gap-2">
+                    {['bike', 'run', 'walk', 'rollerblade'].map((t) => (
                       <button
                         key={t}
                         type="button"
@@ -1154,8 +1192,8 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                         }`}
                       >
                         {getTypeIcon(t)}
-                        <span className="mt-2 text-sm">
-                          {t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : 'Walking'}
+                        <span className="mt-2 text-xs">
+                          {t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : t === 'walk' ? 'Walking' : 'Skating'}
                         </span>
                       </button>
                     ))}
@@ -1166,6 +1204,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                       <label className="block text-sm font-medium text-slate-600 mb-2">
                         {type === 'walk' ? 'Number of steps' : 'Kilometers'}
                       </label>
+
                       <input
                         type="number"
                         inputMode="decimal"
@@ -1299,13 +1338,13 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
               <h3 className="font-semibold text-slate-800 mb-4">Edit entry</h3>
               <form onSubmit={requestSaveEdit} className="space-y-4">
-                <div className="flex gap-2">
-                  {['bike', 'run', 'walk'].map((t) => (
+                <div className="grid grid-cols-4 gap-2">
+                  {['bike', 'run', 'walk', 'rollerblade'].map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => setEditType(t)}
-                      className={`flex-1 flex flex-col items-center justify-center p-3 rounded-lg border font-medium transition-colors ${
+                      className={`flex flex-col items-center justify-center p-2 rounded-lg border font-medium transition-colors ${
                         editType === t
                           ? 'bg-blue-50 text-blue-700 border-blue-500'
                           : 'bg-white text-slate-500 border-slate-200'
@@ -1313,7 +1352,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                     >
                       {getTypeIcon(t)}
                       <span className="mt-1 text-xs">
-                        {t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : 'Walking'}
+                        {t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : t === 'walk' ? 'Walking' : 'Skating'}
                       </span>
                     </button>
                   ))}
