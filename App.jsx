@@ -237,6 +237,14 @@ export default function App() {
     if (newIds.length > 0) saveLocalOrder([...localOrder, ...newIds]);
   }, [data.users]);
 
+  // If the current user was deleted (e.g. by admin on another device), log out
+  useEffect(() => {
+    if (currentUser && data.users.length > 0) {
+      const stillExists = data.users.some(u => u.id === currentUser.id);
+      if (!stillExists) saveCurrentUser(null);
+    }
+  }, [data.users]);
+
   // Users sorted by local preference
   const sortedUsers = useMemo(() => {
     const map = Object.fromEntries(data.users.map(u => [u.id, u]));
