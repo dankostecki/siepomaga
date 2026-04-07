@@ -1259,7 +1259,7 @@ function ActivityModal({ userId, user, onClose, data, setData, currentUser, isAd
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full py-3.5 text-lg bg-white"
+                    className="w-full py-3.5 text-lg bg-slate-100 hover:bg-slate-200 border-slate-300"
                     onClick={handleClose}
                   >
                     {value && !isNaN(value) && Number(value) > 0 ? 'Save & Close' : 'Done'}
