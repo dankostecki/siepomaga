@@ -481,6 +481,16 @@ export default function App() {
       )}
 
       <main className="flex-1 px-4 max-w-5xl w-full mx-auto overflow-x-hidden mt-4">
+
+        {/* My Activity Card — shown when identified */}
+        {currentUser && stats.userStats[currentUser.id] !== undefined && (
+          <MyActivityCard
+            currentUser={currentUser}
+            userStats={stats.userStats[currentUser.id]}
+            onSave={(entry) => setDataSync(prev => ({ ...prev, entries: [entry, ...prev.entries] }))}
+          />
+        )}
+
         {/* Mobile: card list */}
         <div className="md:hidden space-y-3">
           {data.users.length === 0 ? (
@@ -1228,6 +1238,105 @@ function IdentityPopup({ users, onIdentify, onClose }) {
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- SUBCOMPONENT: MY ACTIVITY CARD ---
+function MyActivityCard({ currentUser, userStats, onSave }) {
+  const [type, setType] = useState('bike');
+  const [value, setValue] = useState('');
+
+  const getTypeIcon = (t, size = 'w-5 h-5') => {
+    if (t === 'bike') return <Bike className={size} />;
+    if (t === 'run') return <Activity className={size} />;
+    if (t === 'rollerblade') return <RollerSkateIcon className={size} />;
+    return <Footprints className={size} />;
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (!value || isNaN(value) || Number(value) <= 0) return;
+    onSave({
+      id: Date.now().toString(),
+      userId: currentUser.id,
+      type,
+      value: Number(value),
+      timestamp: Date.now(),
+    });
+    setValue('');
+  };
+
+  return (
+    <div className="mb-4 rounded-2xl overflow-hidden shadow-lg border border-blue-200">
+      {/* Header */}
+      <div className="bg-[#111827] px-5 py-4">
+        <p className="text-blue-400 text-xs font-semibold uppercase tracking-wider mb-0.5">Your dashboard</p>
+        <h2 className="text-white text-lg font-bold">{currentUser.name}</h2>
+        <p className="text-slate-400 text-sm mt-0.5">Share your today's achievement with the team!</p>
+      </div>
+
+      {/* Stats row */}
+      <div className="bg-[#1a2234] grid grid-cols-4 divide-x divide-slate-700 text-center text-xs">
+        {[
+          { icon: <Bike className="w-3.5 h-3.5" />, label: 'Cycling', val: userStats.bike },
+          { icon: <Activity className="w-3.5 h-3.5" />, label: 'Running', val: userStats.run },
+          { icon: <Footprints className="w-3.5 h-3.5" />, label: 'Walking', val: userStats.walk },
+          { icon: <RollerSkateIcon className="w-3.5 h-3.5" />, label: 'Skating', val: userStats.rollerblade },
+        ].map(({ icon, label, val }) => (
+          <div key={label} className="py-3 px-1">
+            <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">{icon} {label}</div>
+            <div className="font-semibold text-white">{formatKm(val)}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick add form */}
+      <div className="bg-white p-4">
+        <form onSubmit={handleSave} className="space-y-3">
+          <div className="grid grid-cols-4 gap-2">
+            {['bike', 'run', 'walk', 'rollerblade'].map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setType(t)}
+                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border font-medium transition-colors text-xs ${
+                  type === t
+                    ? 'bg-blue-50 text-blue-700 border-blue-500 shadow-sm'
+                    : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300'
+                }`}
+              >
+                {getTypeIcon(t)}
+                <span className="mt-1">{t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : t === 'walk' ? 'Walking' : 'Skating'}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min="0"
+              value={value}
+              onChange={e => setValue(e.target.value)}
+              placeholder={type === 'walk' ? 'e.g. 8000 steps' : 'e.g. 15.5 km'}
+              className="flex-1 border border-slate-300 rounded-xl px-4 py-3 text-lg font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-center"
+            />
+            <button
+              type="submit"
+              disabled={!value || isNaN(value) || Number(value) <= 0}
+              className="bg-blue-600 text-white font-semibold px-5 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-40 active:scale-95"
+            >
+              Save
+            </button>
+          </div>
+          {type === 'walk' && value > 0 && (
+            <div className="text-center text-xs text-blue-600 font-semibold bg-blue-50 py-1.5 rounded-lg">
+              = {formatKm(Number(value) * STEP_TO_KM)} KM
+            </div>
+          )}
+        </form>
       </div>
     </div>
   );
