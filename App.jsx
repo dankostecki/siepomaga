@@ -679,17 +679,9 @@ export default function App() {
           {/* Current user identity */}
           <div className="mb-5 p-3 bg-blue-50 border border-blue-100 rounded-lg">
             {currentUser ? (
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-blue-500 font-medium">Logged in as</p>
-                  <p className="text-sm font-semibold text-blue-800">{currentUser.name}</p>
-                </div>
-                <button
-                  className="text-xs text-slate-400 hover:text-red-500 transition-colors"
-                  onClick={() => saveCurrentUser(null)}
-                >
-                  Switch
-                </button>
+              <div>
+                <p className="text-xs text-blue-500 font-medium">Logged in as</p>
+                <p className="text-sm font-semibold text-blue-800">{currentUser.name}</p>
               </div>
             ) : (
               <p className="text-xs text-slate-500">
