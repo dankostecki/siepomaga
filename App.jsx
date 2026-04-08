@@ -1270,7 +1270,7 @@ function MyActivityCard({ currentUser, userStats, onSave, entries, onDelete, onE
   const [type, setType] = useState('bike');
   const [value, setValue] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null); // { id, type, value }
   const [editType, setEditType] = useState('bike');
   const [editValue, setEditValue] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -1371,7 +1371,7 @@ function MyActivityCard({ currentUser, userStats, onSave, entries, onDelete, onE
 
         {/* History toggle */}
         <button
-          className="w-full mt-3 text-xs text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-1"
+          className="w-full mt-3 text-xs text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-1 py-1"
           onClick={() => setHistoryOpen(o => !o)}
         >
           {historyOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1379,72 +1379,105 @@ function MyActivityCard({ currentUser, userStats, onSave, entries, onDelete, onE
         </button>
 
         {historyOpen && (
-          <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
-            {userEntries.length === 0 ? (
-              <p className="text-center text-slate-400 text-xs py-4">No entries yet.</p>
-            ) : userEntries.map(entry => (
-              <div key={entry.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                {editingId === entry.id ? (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {['bike','run','walk','rollerblade'].map(t => (
-                        <button key={t} type="button" onClick={() => setEditType(t)}
-                          className={`flex flex-col items-center py-2 rounded-lg border text-xs font-medium transition-colors ${editType === t ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 text-slate-500'}`}>
-                          {getTypeIcon(t)}
-                          <span className="mt-0.5">{t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : t === 'walk' ? 'Walking' : 'Skating'}</span>
-                        </button>
-                      ))}
-                    </div>
-                    <input type="number" inputMode="decimal" step="any" value={editValue}
-                      onChange={e => setEditValue(e.target.value)} autoFocus
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 text-center font-bold text-slate-900 focus:outline-none focus:border-blue-500" />
-                    <div className="flex gap-2">
-                      <button onClick={() => setEditingId(null)}
-                        className="flex-1 py-2 rounded-lg border border-slate-300 text-slate-600 text-sm hover:bg-slate-50">Cancel</button>
-                      <button onClick={() => { onEdit(entry.id, editType, Number(editValue)); setEditingId(null); }}
-                        disabled={!editValue || isNaN(editValue) || Number(editValue) <= 0}
-                        className="flex-1 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-40">Save</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="text-blue-600">{getTypeIcon(entry.type, 'w-4 h-4')}</div>
-                      <div>
-                        <div className="font-semibold text-slate-800 text-sm">
-                          {entry.type === 'walk' ? `${entry.value} steps (${formatKm(entry.value * STEP_TO_KM)} km)` : `${entry.value} km`}
-                        </div>
-                        <div className="text-xs text-slate-400">{new Date(entry.timestamp).toLocaleString('en-GB')}</div>
+          <div className="mt-2 relative">
+            {/* Fade overlay top */}
+            <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none rounded-t-xl" />
+            {/* Fade overlay bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none rounded-b-xl" />
+
+            <div className="max-h-56 overflow-y-auto space-y-2 px-0.5 py-2">
+              {userEntries.length === 0 ? (
+                <p className="text-center text-slate-400 text-xs py-4">No entries yet.</p>
+              ) : userEntries.map(entry => (
+                <div key={entry.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="text-blue-600">{getTypeIcon(entry.type, 'w-4 h-4')}</div>
+                    <div>
+                      <div className="font-semibold text-slate-800 text-sm">
+                        {entry.type === 'walk' ? `${entry.value} steps (${formatKm(entry.value * STEP_TO_KM)} km)` : `${entry.value} km`}
                       </div>
-                    </div>
-                    <div className="flex gap-1">
-                      {confirmDeleteId === entry.id ? (
-                        <>
-                          <button onClick={() => setConfirmDeleteId(null)}
-                            className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-500 hover:bg-slate-50">No</button>
-                          <button onClick={() => { onDelete(entry.id); setConfirmDeleteId(null); }}
-                            className="text-xs px-2 py-1 rounded border border-red-400 text-red-600 hover:bg-red-50">Yes, delete</button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={() => { setEditingId(entry.id); setEditType(entry.type); setEditValue(entry.value); }}
-                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={() => setConfirmDeleteId(entry.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </>
-                      )}
+                      <div className="text-xs text-slate-400">{new Date(entry.timestamp).toLocaleString('en-GB')}</div>
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
+                  <div className="flex gap-1 shrink-0">
+                    {confirmDeleteId === entry.id ? (
+                      <>
+                        <button onClick={() => setConfirmDeleteId(null)}
+                          className="text-xs px-2 py-1 rounded-lg border border-slate-300 text-slate-500 hover:bg-slate-50">No</button>
+                        <button onClick={() => { onDelete(entry.id); setConfirmDeleteId(null); }}
+                          className="text-xs px-2 py-1 rounded-lg border border-red-400 text-red-600 hover:bg-red-50">Delete</button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setEditingEntry(entry); setEditType(entry.type); setEditValue(String(entry.value)); }}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setConfirmDeleteId(entry.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Edit entry modal */}
+      {editingEntry && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="bg-[#111827] p-4 text-white flex justify-between items-center">
+              <h3 className="font-semibold flex items-center gap-2">
+                <div className="w-1.5 h-5 bg-blue-500 rounded-full" /> Edit entry
+              </h3>
+              <button onClick={() => setEditingEntry(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-4 gap-2">
+                {['bike','run','walk','rollerblade'].map(t => (
+                  <button key={t} type="button" onClick={() => setEditType(t)}
+                    className={`flex flex-col items-center py-2.5 rounded-xl border text-xs font-medium transition-colors ${editType === t ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}>
+                    {getTypeIcon(t)}
+                    <span className="mt-1">{t === 'bike' ? 'Cycling' : t === 'run' ? 'Running' : t === 'walk' ? 'Walking' : 'Skating'}</span>
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number" inputMode="decimal" step="any"
+                value={editValue}
+                onChange={e => setEditValue(e.target.value)}
+                autoFocus
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-2xl font-bold text-slate-900 focus:outline-none focus:border-blue-500 text-center"
+              />
+              {editType === 'walk' && Number(editValue) > 0 && (
+                <div className="text-center text-xs text-blue-600 font-semibold bg-blue-50 py-1.5 rounded-lg">
+                  = {formatKm(Number(editValue) * STEP_TO_KM)} KM
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button onClick={() => setEditingEntry(null)}
+                  className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 transition-colors">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { onEdit(editingEntry.id, editType, Number(editValue)); setEditingEntry(null); }}
+                  disabled={!editValue || isNaN(editValue) || Number(editValue) <= 0}
+                  className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-40">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
