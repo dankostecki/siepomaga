@@ -1,0 +1,41 @@
+{
+  "entries": [
+    {
+      "id": "1776256536264",
+      "userId": "1774972134001",
+      "type": "walk",
+      "value": 248000,
+      "timestamp": 1776256536264
+    }
+  ],
+  "users": [
+    {
+      "order": 0,
+      "id": "1774972134001",
+      "name": "Kasia Cz"
+    },
+    {
+      "name": "Natalia M",
+      "id": "1774972155883",
+      "order": 1
+    },
+    {
+      "name": "Łukasz W",
+      "id": "1774973544476",
+      "order": 2
+    },
+    {
+      "order": 3,
+      "id": "1774973552008",
+      "name": "Bartek K"
+    },
+    {
+      "id": "1775070454323",
+      "name": "Daniel K"
+    },
+    {
+      "name": "Test Test",
+      "id": "1775639550030"
+    }
+  ]
+}
