@@ -35,7 +35,7 @@ const RollerSkateIcon = ({ className }) => (
 );
 
 // --- CONFIGURATION ---
-const GOAL_KM = 6000;
+const GOAL_KM = 7810;
 const STEP_TO_KM = 0.00072;
 const PIN_HASH = 'f32f613fca81c87052af842eaac5585812d884030a3af1e1cd2d06863d79ad1c';
 
